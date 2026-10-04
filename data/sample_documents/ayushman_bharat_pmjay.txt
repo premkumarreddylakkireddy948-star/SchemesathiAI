@@ -1,0 +1,33 @@
+================================================================================
+GOVERNMENT OF INDIA - MINISTRY OF HEALTH & FAMILY WELFARE / NHA
+SCHEME GUIDELINES: AYUSHMAN BHARAT - PRADHAN MANTRI JAN AROGYA YOJANA (PM-JAY)
+================================================================================
+Scheme Code: GOI-HLTH-PMJAY-2024
+Category: Healthcare & Health Insurance
+Target Beneficiaries: Poor, vulnerable households identified under Socio-Economic Caste Census (SECC 2011) and senior citizens aged 70+.
+
+1. SCHEME OBJECTIVE:
+To provide cashless secondary and tertiary healthcare hospitalization coverage to the bottom 40% of the Indian population and ensure financial protection against catastrophic health expenditures.
+
+2. ELIGIBILITY CRITERIA:
+- Families identified based on deprivation and occupational criteria in SECC 2011 database:
+  * Rural Categories: Households with no male adult member (16-59 yrs), female-headed households, SC/ST households, landless casual manual labor households.
+  * Urban Categories: Occupational categories such as ragpickers, beggars, domestic workers, street vendors, cobblers, construction workers, plumbers, transport workers, sanitation workers.
+- Senior Citizens: All senior citizens aged 70 years and above (Ayushman Vaya Vandana Card) regardless of income.
+- No family size or age cap.
+
+3. BENEFITS & FINANCIAL ASSISTANCE:
+- Health Coverage: Cashless insurance cover of up to ₹5,00,000 (Rupees Five Lakh) per family per year.
+- Covers pre-hospitalization (up to 3 days) and post-hospitalization (up to 15 days) expenses including diagnostics and medicines.
+- Over 1,900 medical procedures covered across empanelled public and private hospitals nationwide.
+
+4. MANDATORY REQUIRED DOCUMENTS:
+1. Aadhaar Card (For identity and eKYC verification).
+2. Ration Card / Family ID / State Food Security Card.
+3. Ayushman Card / Golden Card (Generated after eKYC).
+4. PM-JAY Eligibility Letter / Family HHID reference number.
+
+5. APPLICATION PROCESS:
+- Check Eligibility: Search HHID or Mobile Number on beneficiary.nha.gov.in portal.
+- eKYC Verification: Visit nearest Empanelled Hospital (Ayushman Mitradesk) or Common Service Center (CSC).
+- Instant Card Generation: Ayushman Card issued immediately after eKYC verification.

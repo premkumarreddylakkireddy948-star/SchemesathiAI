@@ -1,0 +1,41 @@
+================================================================================
+GOVERNMENT OF INDIA - MINISTRY OF AGRICULTURE & FARMERS WELFARE
+SCHEME GUIDELINES: PRADHAN MANTRI KISAN SAMMAN NIDHI (PM-KISAN)
+================================================================================
+Scheme Code: GOI-AGRI-PMKISAN-2024
+Category: Agriculture & Farmer Welfare
+Target Beneficiaries: Landholding Small and Marginal Farmers across India.
+
+1. SCHEME OBJECTIVE:
+To augment the income of Small and Marginal Farmers (SMFs) to supplement their financial needs in procuring various inputs to ensure proper crop health and appropriate yields, commensurate with the anticipated farm income at the end of each crop cycle.
+
+2. ELIGIBILITY CRITERIA:
+- All landholding farmer families who own cultivable landholding in their names.
+- A farmer family is defined as a husband, wife, and minor children.
+- Land holding criteria: Cultivable land up to 2 hectares (5 acres) recorded in land revenue records as of February 1, 2019.
+
+EXCLUSIONS (Ineligible Categories):
+- Institutional landholders.
+- Farmer families where one or more members belong to former or present holders of constitutional posts, former/present Ministers, MPs, MLAs, Mayors, Chairpersons of District Panchayats.
+- Serving or retired officers and employees of State/Central Govt Ministries/Departments.
+- All superannuated/retired pensioners whose monthly pension is ₹10,000 or more.
+- All persons who paid Income Tax in the last assessment year.
+- Professionals like Doctors, Engineers, Lawyers, Chartered Accountants, and Architects registered with professional bodies.
+
+3. BENEFITS & FINANCIAL ASSISTANCE:
+- Financial benefit of ₹6,000/- per year per eligible farmer family.
+- Payable in three equal quarterly installments of ₹2,000/- each every 4 months.
+- Direct Benefit Transfer (DBT) into Aadhaar-seeded bank accounts via NPCI payment gateway.
+
+4. MANDATORY REQUIRED DOCUMENTS:
+1. Land Ownership Records (Khasra / Khatauni / RoR / Patta copy in farmer's name).
+2. Aadhaar Card (Mandatory requirement for biometric/eKYC verification).
+3. Active Bank Account Passbook (Bank account must be Aadhaar linked and active for DBT).
+4. Valid Mobile Number linked with Aadhaar.
+5. Domicile / State Identity Card.
+
+5. APPLICATION PROCESS:
+- Self Registration: Apply online via Farmers Corner on official portal (pmkisan.gov.in) or PM-KISAN Mobile App.
+- CSC Registration: Visit nearest Common Service Centre (CSC) with land and Aadhaar documents.
+- eKYC Verification: Mandatory eKYC via OTP or biometric face authentication on portal.
+- State Nodal Officer approval followed by PFMS verification.

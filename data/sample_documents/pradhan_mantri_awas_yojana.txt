@@ -1,0 +1,39 @@
+================================================================================
+GOVERNMENT OF INDIA - MINISTRY OF HOUSING AND URBAN AFFAIRS
+SCHEME GUIDELINES: PRADHAN MANTRI AWAS YOJANA (PMAY - HOUSING FOR ALL)
+================================================================================
+Scheme Code: GOI-HOUS-PMAY-2024
+Category: Housing & Urban Development
+Target Beneficiaries: Economically Weaker Sections (EWS), Low Income Groups (LIG), and Middle Income Groups (MIG).
+
+1. SCHEME OBJECTIVE:
+To address the housing requirement of urban and rural poor including slum dwellers by providing all-weather pucca houses with basic amenities (water, sanitation, electricity).
+
+2. ELIGIBILITY CRITERIA:
+- The beneficiary family must NOT own a pucca house (an all-weather dwelling unit) in their name or in any family member's name anywhere in India.
+- Income Categories:
+  * Economically Weaker Section (EWS): Annual household income up to ₹3,000,000 (₹3.0 Lakh).
+  * Low Income Group (LIG): Annual household income between ₹3,00,001 and ₹6,00,000 (₹3 Lakh to ₹6 Lakh).
+  * Middle Income Group I (MIG-I): Annual household income between ₹6,00,001 and ₹12,00,000.
+  * Middle Income Group II (MIG-II): Annual household income between ₹12,00,001 and ₹18,00,000.
+- Females Ownership: For EWS/LIG categories, the house must be owned solely by female head or jointly with male spouse.
+- Not availed any central assistance under any previous housing scheme.
+
+3. BENEFITS & FINANCIAL ASSISTANCE:
+- Credit Linked Subsidy Scheme (CLSS): Interest subsidy of 6.5% on housing loan up to ₹6 Lakh for EWS/LIG for a tenure of up to 20 years (Up to ₹2.67 Lakh upfront subsidy).
+- Beneficiary-Led Construction (BLC): Direct central grant of ₹1.50 Lakh per house to individual EWS families to construct new house or enhance existing house.
+- PMAY-Gramin Financial Assistance: Direct grant of ₹1.20 Lakh (plains) to ₹1.30 Lakh (hilly/difficult areas) for rural pucca house construction with MGNREGA labor wages.
+
+4. MANDATORY REQUIRED DOCUMENTS:
+1. Income Certificate / Salary Slip / Form 16 / Revenue Officer certificate proving annual income.
+2. Aadhaar Cards of all beneficiary family members.
+3. Affidavit declaring that no member of the family owns a pucca house anywhere in India.
+4. Land ownership documents / House allotment letter / Site patta copy.
+5. Bank Account details (Passbook copy with Aadhaar linkage).
+6. Approved House Plan and Construction Cost Estimate by registered engineer.
+7. PAN Card / Voter ID Card.
+
+5. APPLICATION PROCESS:
+- Online Portal: Apply via pmaymis.gov.in or PMAY Mobile App.
+- Bank Application: Apply directly at participating banks/HFCs for CLSS loan subsidy.
+- Physical Verification: Geo-tagging of construction phases (Foundation, Lintel, Roof) by urban local body (ULB) / Gram Panchayat inspectors.

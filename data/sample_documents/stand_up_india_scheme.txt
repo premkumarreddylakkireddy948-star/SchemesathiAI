@@ -1,0 +1,38 @@
+================================================================================
+GOVERNMENT OF INDIA - MINISTRY OF FINANCE / SIDBI
+SCHEME GUIDELINES: STAND UP INDIA SCHEME FOR SC/ST AND WOMEN ENTREPRENEURS
+================================================================================
+Scheme Code: GOI-FIN-STANDUP-2024
+Category: Entrepreneurship, Business Credit & Loans
+Target Beneficiaries: SC, ST, and Women Entrepreneurs setting up new greenfield enterprises.
+
+1. SCHEME OBJECTIVE:
+To facilitate bank loans between ₹10 Lakh and ₹1 Crore to at least one Scheduled Caste (SC) or Scheduled Tribe (ST) borrower and at least one Woman borrower per bank branch for setting up a greenfield enterprise in manufacturing, services, agri-allied activities or trading sector.
+
+2. ELIGIBILITY CRITERIA:
+- Target Group: SC/ST and/or Woman entrepreneurs above 18 years of age.
+- Enterprise Status: Greenfield Enterprise (defined as the first time venture of the beneficiary in manufacturing, services, or trading sector).
+- Ownership Share: In case of non-individual enterprises (such as partnerships, LLPs, or private limited companies), at least 51% of the shareholding and controlling stake must be held by an SC/ST or Woman entrepreneur.
+- Credit Default History: Borrower should NOT be in default to any bank or financial institution.
+
+3. BENEFITS & FINANCIAL ASSISTANCE:
+- Loan Amount: Composite loan (inclusive of term loan and working capital) between ₹10,00,000 (₹10 Lakh) and ₹100,00,000 (₹1 Crore).
+- Margin Money: Scheme envisions margin money of up to 15% (can be covered in convergence with eligible central/state schemes).
+- Interest Rate: Lowest applicable rate of the bank for that category (MCLR + tenor premium + risk premium, not exceeding 3%).
+- Repayment Tenure: Loan is repayable in 7 years with a maximum moratorium period of 18 months.
+- Credit Guarantee: Facility of Credit Guarantee Scheme for Stand Up India Loans (CGFSIL) through NCGTC without requiring third-party collateral.
+
+4. MANDATORY REQUIRED DOCUMENTS:
+1. Proof of Identity: Aadhaar Card / Voter ID / Passport / PAN Card.
+2. Proof of Category: Caste Certificate (SC/ST) issued by competent authority (Not applicable for non-SC/ST women).
+3. Proof of Residence: Electricity bill / Telephone bill / Property tax receipt.
+4. Business Address Proof & Project Report / Detailed Business Plan.
+5. Registration Certificates: MSME Udyam Registration, GST Registration, Partnership Deed / Certificate of Incorporation.
+6. Last 6 Months Bank Account Statements of the promoter.
+7. Land/Shed Lease Deed or Rent Agreement for business location.
+8. Pollution Control Board clearance certificate / Municipal trade license (if applicable).
+
+5. APPLICATION PROCESS:
+- Online Application: Apply through Stand Up Mitra portal (standupmitra.in) or Lead District Manager (LDM) office.
+- Bank Branch Allocation: Application routed automatically to chosen bank branch.
+- Hand-holding Support: Supported by SIDBI, NABARD, and DIC for project preparation and skill training.
