@@ -16,12 +16,18 @@ class SourceCitation(BaseModel):
 # Chat & Query Schemas
 class ChatRequest(BaseModel):
     conversation_id: Optional[str] = None
-    message: str
+    message: Optional[str] = None
+    question: Optional[str] = None
     user_context: Optional[Dict[str, Any]] = None
+
+    @property
+    def effective_message(self) -> str:
+        return self.message or self.question or ""
 
 class ChatResponse(BaseModel):
     conversation_id: str
     message: str
+    answer: Optional[str] = None
     sources: List[SourceCitation] = []
     relevant_scheme_ids: List[int] = []
     agent_steps: Optional[List[str]] = None

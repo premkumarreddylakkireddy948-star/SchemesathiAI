@@ -41,6 +41,15 @@ app.include_router(documents_router, prefix=settings.API_V1_STR, tags=["Document
 app.include_router(checklist_router, prefix=settings.API_V1_STR, tags=["Checklist"])
 app.include_router(saved_schemes_router, prefix=settings.API_V1_STR, tags=["Saved Schemes"])
 
+# Also register without prefix to support direct root calls
+app.include_router(chat_router, prefix="", tags=["Chat Agent Direct"])
+app.include_router(query_router, prefix="", tags=["RAG Retrieval Direct"])
+app.include_router(schemes_router, prefix="", tags=["Schemes Direct"])
+app.include_router(compare_router, prefix="", tags=["Compare Direct"])
+app.include_router(documents_router, prefix="", tags=["Documents RAG Direct"])
+app.include_router(checklist_router, prefix="", tags=["Checklist Direct"])
+app.include_router(saved_schemes_router, prefix="", tags=["Saved Schemes Direct"])
+
 @app.on_event("startup")
 def startup_event():
     logger.info(f"Starting SchemeSathi AI Backend [{settings.ENVIRONMENT.upper()} mode]...")

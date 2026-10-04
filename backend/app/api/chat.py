@@ -20,10 +20,14 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
     if not cid or cid.strip() == "":
         cid = str(uuid.uuid4())
     
+    user_query = request.effective_message
+    if not user_query:
+        raise HTTPException(status_code=400, detail="Query message or question is required")
+
     # Check or create conversation
     conv = db.query(Conversation).filter(Conversation.id == cid).first()
     if not conv:
-        conv = Conversation(id=cid, title=request.message[:40])
+        conv = Conversation(id=cid, title=user_query[:40])
         db.add(conv)
         db.commit()
 
@@ -31,14 +35,14 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
     user_msg = Message(
         conversation_id=cid,
         sender="user",
-        content=request.message
+        content=user_query
     )
     db.add(user_msg)
     db.commit()
 
     # Execute Agent graph
     agent_output = agent_executor.run(
-        query=request.message,
+        query=user_query,
         user_context=request.user_context
     )
 
@@ -75,6 +79,7 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
     return ChatResponse(
         conversation_id=cid,
         message=answer_text,
+        answer=answer_text,
         sources=citations,
         relevant_scheme_ids=scheme_ids,
         agent_steps=tools_used

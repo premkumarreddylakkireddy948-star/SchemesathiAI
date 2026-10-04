@@ -1,5 +1,20 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/:path*",
+      "destination": "https://termination-magnetic-mounting-met.trycloudflare.com/api/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://termination-magnetic-mounting-met.trycloudflare.com/health"
+    },
+    {
+      "source": "/docs",
+      "destination": "https://termination-magnetic-mounting-met.trycloudflare.com/docs"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

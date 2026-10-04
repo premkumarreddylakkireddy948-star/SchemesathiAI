@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
-import { chatWithAgent, fetchSchemeById } from '../services/api';
+import { chatWithAgent, fetchSchemeById, API_BASE_URL } from '../services/api';
 import { useSchemeContext } from '../context/SchemeContext';
 import SourceCitationCard from '../components/SourceCitationCard';
 import SchemeCard from '../components/SchemeCard';
@@ -109,7 +109,7 @@ export default function AINavigator() {
         {
           id: (Date.now() + 1).toString(),
           sender: 'agent',
-          content: "Sorry, I encountered a communication issue with the backend server. Please verify that the FastAPI backend service is running at `http://localhost:8000`.",
+          content: `Sorry, I encountered a communication issue with the backend server (${API_BASE_URL}). Please verify that the FastAPI backend service is reachable and healthy.`,
           sources: [],
           relevantSchemes: [],
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })

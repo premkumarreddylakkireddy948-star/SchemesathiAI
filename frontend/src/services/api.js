@@ -1,6 +1,21 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// Get base URL from environment or default to relative /api
+const getNormalizedApiBaseUrl = () => {
+  const rawUrl = import.meta.env.VITE_API_BASE_URL || '';
+  if (!rawUrl) return '/api';
+  
+  // Remove trailing slashes
+  const cleanUrl = rawUrl.replace(/\/+$/, '');
+  
+  // If already ends with /api, return as is; otherwise append /api
+  if (cleanUrl.endsWith('/api')) {
+    return cleanUrl;
+  }
+  return `${cleanUrl}/api`;
+};
+
+export const API_BASE_URL = getNormalizedApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -87,8 +102,7 @@ export const fetchDocuments = async () => {
 };
 
 export const uploadDocumentApi = async (formData) => {
-  const uploadUrl = API_BASE_URL.endsWith('/') ? `${API_BASE_URL}documents/upload` : `${API_BASE_URL}/documents/upload`;
-  const response = await axios.post(uploadUrl, formData, {
+  const response = await api.post('/documents/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
