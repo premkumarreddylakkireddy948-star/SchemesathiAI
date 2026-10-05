@@ -45,27 +45,40 @@ class SchemeSathiAgent:
                 tools = []
                 intent = "INFORMATIONAL"
                 
+                # Check for personalized discovery/eligibility query FIRST
+                is_personalized = any(k in q for k in [
+                    "student", "b.tech", "scholarship", "tamil nadu", "family income",
+                    "sc category", "my education", "relevant for me", "i am", "my family",
+                    "find the most relevant", "schemes for me", "for my education"
+                ])
+
+                if is_personalized:
+                    intent = "PERSONALIZED"
+                    tools = [
+                        "search_schemes",
+                        "check_eligibility",
+                        "search_knowledge_base",
+                        "search_web_for_government_schemes",
+                        "get_required_documents",
+                        "get_application_process"
+                    ]
                 # 1. Checklist request
-                if "checklist" in q:
+                elif "checklist" in q:
                     intent = "CHECKLIST"
                     tools = ["create_document_checklist"]
                 # 2. Document request
-                elif "what document" in q or "documents do i need" in q or "proofs needed" in q:
+                elif "document" in q or "proof" in q or "certificate" in q or "papers" in q:
                     intent = "DOCUMENTS_ONLY"
                     tools = ["get_required_documents", "search_knowledge_base"]
-                # 3. Comparison request
-                elif "compare" in q or " vs " in q or "versus" in q or "difference between" in q:
+                # 3. Direct scheme vs scheme comparison request
+                elif ("compare" in q or " vs " in q or "versus" in q or "difference between" in q) and not is_personalized:
                     intent = "COMPARISON"
                     tools = ["compare_schemes", "search_knowledge_base"]
                 # 4. Latest / Current news
                 elif "latest" in q or "update" in q or "current" in q or "recent" in q or "2026" in q:
                     intent = "LATEST_NEWS"
                     tools = ["search_web_for_government_schemes"]
-                # 5. Personalized eligibility
-                elif any(k in q for k in ["student", "income", "from ", "my family", "i am", "for me"]):
-                    intent = "PERSONALIZED"
-                    tools = ["search_schemes", "check_eligibility", "search_knowledge_base"]
-                # 6. Default informational query ("What is PM-KISAN?")
+                # 5. Default informational query ("What is PM-KISAN?")
                 else:
                     intent = "INFORMATIONAL"
                     tools = ["search_knowledge_base", "get_scheme_details"]
@@ -104,7 +117,6 @@ class SchemeSathiAgent:
 
                 # Execute Comparison Tool
                 if "compare_schemes" in tools_to_run:
-                    # Try to match schemes in query
                     table_res = compare_schemes([query])
                     retrieved["comparison"] = table_res
 
@@ -122,7 +134,7 @@ class SchemeSathiAgent:
                 if "check_eligibility" in tools_to_run and scheme_ids:
                     context = state.get("user_context") or {}
                     elig_results = []
-                    for sid in scheme_ids[:2]:
+                    for sid in scheme_ids[:3]:
                         res = check_eligibility(
                             scheme_id=sid,
                             user_income=context.get("annual_income", 250000),
@@ -145,7 +157,6 @@ class SchemeSathiAgent:
                 retrieved = state.get("retrieved_data", {})
                 user_context = state.get("user_context")
                 
-                # Context chunks pass to LLM service
                 context_chunks = []
                 if "rag_result" in retrieved and retrieved["rag_result"].get("sources"):
                     for s in retrieved["rag_result"].get("sources", []):
@@ -170,16 +181,6 @@ class SchemeSathiAgent:
                                 "text": w.get("snippet")
                             }
                         })
-
-                system_prompt = (
-                    "You are SchemeSathi AI. Synthesize clean, grounded, user-facing markdown responses.\n"
-                    "RULES:\n"
-                    "1. Never output debug logs, tool calls, internal json, top-k chunks, or reasoning.\n"
-                    "2. Ground information only in official government sources when available.\n"
-                    "3. For comparison queries, output a full Markdown table with columns: Feature | Scheme A | Scheme B.\n"
-                    "4. Never say 'You are eligible.' Say 'Based on the information provided, this scheme appears potentially relevant...'\n"
-                    "5. Final eligibility must be verified on official government portals."
-                )
 
                 answer = llm_service.generate_formatted_response(
                     query=query,
@@ -235,18 +236,22 @@ class SchemeSathiAgent:
 
         # Native fallback execution if graph compile fails
         q = query.lower()
-        if "compare" in q or " vs " in q:
+        is_personalized = any(k in q for k in [
+            "student", "b.tech", "scholarship", "tamil nadu", "family income",
+            "sc category", "my education", "relevant for me", "i am", "my family"
+        ])
+        if is_personalized:
+            intent = "PERSONALIZED"
+            tools_used = ["search_schemes", "check_eligibility", "search_knowledge_base", "search_web_for_government_schemes"]
+        elif "compare" in q or " vs " in q:
             intent = "COMPARISON"
             tools_used = ["compare_schemes", "search_knowledge_base"]
-        elif "checklist" in q:
-            intent = "CHECKLIST"
-            tools_used = ["create_document_checklist"]
-        elif "latest" in q or "update" in q:
+        elif "checklist" in q or "document" in q:
+            intent = "DOCUMENTS_ONLY"
+            tools_used = ["get_required_documents", "create_document_checklist"]
+        elif "latest" in q or "update" in q or "2026" in q:
             intent = "LATEST_NEWS"
             tools_used = ["search_web_for_government_schemes"]
-        elif any(k in q for k in ["student", "income", "from ", "i am"]):
-            intent = "PERSONALIZED"
-            tools_used = ["search_schemes", "check_eligibility", "search_knowledge_base"]
         else:
             intent = "INFORMATIONAL"
             tools_used = ["search_knowledge_base", "get_scheme_details"]
