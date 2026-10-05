@@ -73,6 +73,32 @@ class LLMService:
                 }
             schemes_found[sname]["texts"].append(payload.get("text", ""))
 
+        # Check if query is targeting a specific scheme
+        q_lower = query.lower()
+        target_kws = []
+        if "kisan" in q_lower or "kissan" in q_lower or "pmkisan" in q_lower:
+            target_kws.append("kisan")
+        if "ayushman" in q_lower or "pmjay" in q_lower or "pm-jay" in q_lower:
+            target_kws.append("ayushman")
+            target_kws.append("pm-jay")
+        if "pmay" in q_lower or "awas" in q_lower:
+            target_kws.append("awas")
+            target_kws.append("pmay")
+        if "stand up" in q_lower or "standup" in q_lower:
+            target_kws.append("stand up")
+        if "post-matric" in q_lower:
+            target_kws.append("post-matric")
+
+        if target_kws:
+            filtered = {}
+            for sname, details in schemes_found.items():
+                s_low = sname.lower()
+                d_low = details["doc"].lower()
+                if any(kw in s_low or kw in d_low for kw in target_kws):
+                    filtered[sname] = details
+            if filtered:
+                schemes_found = filtered
+
         response = "Based on official government scheme guidelines retrieved from our knowledge base, here are potentially relevant options for your situation:\n\n"
 
         for sname, details in schemes_found.items():
