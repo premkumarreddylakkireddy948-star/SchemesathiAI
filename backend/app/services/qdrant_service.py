@@ -15,35 +15,24 @@ class QdrantService:
         self._ensure_collection()
 
     def _init_client(self) -> QdrantClient:
-        # In production mode, require remote Qdrant server connection
-        if settings.is_production:
-            if not settings.QDRANT_URL:
-                raise RuntimeError("PRODUCTION QDRANT ERROR: QDRANT_URL environment variable must be set in production mode.")
+        # If QDRANT_URL is explicitly set and not localhost, connect to remote Qdrant service
+        if settings.QDRANT_URL and "localhost" not in settings.QDRANT_URL and "127.0.0.1" not in settings.QDRANT_URL:
             try:
                 client = QdrantClient(url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY or None, timeout=10.0)
-                client.get_collections()
-                logger.info(f"Production Qdrant Vector DB connected successfully at {settings.QDRANT_URL}")
-                return client
-            except Exception as e:
-                raise RuntimeError(f"PRODUCTION QDRANT ERROR: Unable to connect to production Qdrant service at {settings.QDRANT_URL}: {e}")
-
-        # Development mode: attempt remote/local server first, fall back to embedded storage
-        if settings.QDRANT_URL and settings.QDRANT_URL != "http://localhost:6333":
-            try:
-                client = QdrantClient(url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY or None)
                 client.get_collections()
                 logger.info(f"Connected to remote Qdrant DB at {settings.QDRANT_URL}")
                 return client
             except Exception as e:
-                logger.warning(f"Could not connect to remote Qdrant ({e}). Falling back to local storage.")
+                logger.warning(f"Could not connect to remote Qdrant at {settings.QDRANT_URL}: {e}")
 
+        # Attempt connection to local Qdrant server
         try:
-            client = QdrantClient(url=settings.QDRANT_URL, timeout=3.0)
+            client = QdrantClient(url=settings.QDRANT_URL or "http://localhost:6333", timeout=3.0)
             client.get_collections()
-            logger.info("Connected to local Qdrant server at localhost:6333")
+            logger.info("Connected to local Qdrant server")
             return client
         except Exception:
-            logger.info("Qdrant server not detected at localhost:6333. Using embedded persistent vector storage at './qdrant_db'.")
+            logger.info("Using embedded persistent Qdrant vector store at './qdrant_db'.")
             return QdrantClient(path="./qdrant_db")
 
     def _ensure_collection(self):

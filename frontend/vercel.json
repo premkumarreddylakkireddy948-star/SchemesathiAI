@@ -2,15 +2,15 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://termination-magnetic-mounting-met.trycloudflare.com/api/:path*"
+      "destination": "https://durham-cartridges-tiles-investigate.trycloudflare.com/api/:path*"
     },
     {
       "source": "/health",
-      "destination": "https://termination-magnetic-mounting-met.trycloudflare.com/health"
+      "destination": "https://durham-cartridges-tiles-investigate.trycloudflare.com/health"
     },
     {
       "source": "/docs",
-      "destination": "https://termination-magnetic-mounting-met.trycloudflare.com/docs"
+      "destination": "https://durham-cartridges-tiles-investigate.trycloudflare.com/docs"
     },
     {
       "source": "/(.*)",

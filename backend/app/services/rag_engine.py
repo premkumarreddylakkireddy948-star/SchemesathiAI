@@ -137,6 +137,9 @@ class RAGEngine:
         # Variations for PMAY
         if "pmay" in q_lower or "awas yojana" in q_lower:
             normalized = normalized.replace("pmay", "PMAY")
+        # Variations for Bharti Airtel Scholarship
+        if "airtel" in q_lower or "bharti" in q_lower:
+            normalized = normalized.replace("airtel", "Bharti Airtel").replace("bharti", "Bharti Airtel")
 
         return normalized
 
@@ -159,8 +162,11 @@ class RAGEngine:
             target_scheme_keywords.append("pmay")
         if "stand up" in q_lower or "standup" in q_lower:
             target_scheme_keywords.append("stand up")
-        if "post-matric" in q_lower or "scholarship" in q_lower:
-            target_scheme_keywords.append("scholarship")
+        if "post-matric" in q_lower:
+            target_scheme_keywords.append("post-matric")
+        if "airtel" in q_lower or "bharti" in q_lower:
+            target_scheme_keywords.append("airtel")
+            target_scheme_keywords.append("bharti")
 
         if target_scheme_keywords:
             matched_chunks = []

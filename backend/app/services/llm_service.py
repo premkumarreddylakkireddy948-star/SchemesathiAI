@@ -59,8 +59,11 @@ class LLMService:
 
         # Clean query punctuation for greeting check
         q_clean = q_lower.translate(str.maketrans("", "", ",.?!"))
-        greetings = ["hello", "hi", "hey", "who are you", "what are you", "what can you do", "help", "good morning", "good evening", "namaste"]
-        if (any(g in q_clean for g in ["hello", "hi", "hey", "who are you", "what can you do", "good morning", "namaste"]) and len(q_clean.split()) <= 6):
+        words = set(q_clean.split())
+        greetings_words = {"hello", "hi", "hey", "namaste"}
+        greetings_phrases = ["who are you", "what can you do", "good morning", "good evening"]
+        is_greeting = bool(words & greetings_words) or any(p in q_clean for p in greetings_phrases)
+        if is_greeting and len(q_clean.split()) <= 4:
             return (
                 "Hello! 👋 I am **SchemeSathi AI**, your intelligent guide for Indian government schemes, scholarships, and welfare entitlements.\n\n"
                 "You can ask me questions like:\n"
@@ -122,6 +125,9 @@ class LLMService:
         if any(k in q_lower for k in ["post-matric", "scholarship", "college", "student"]):
             target_kws.append("post-matric")
             target_kws.append("scholarship")
+        if any(k in q_lower for k in ["airtel", "bharti"]):
+            target_kws.append("airtel")
+            target_kws.append("bharti")
 
         if target_kws:
             filtered = {}
@@ -136,7 +142,9 @@ class LLMService:
 
         # 4. Formulate Scenario-Specific Intros Tailored to Prompt
         intro = "Based on official government scheme guidelines retrieved from our knowledge base, here is the relevant information:\n\n"
-        if "bakery" in q_lower or ("business" in q_lower and "loan" in q_lower) or "bakery shop" in q_lower:
+        if "airtel" in q_lower or "bharti" in q_lower:
+            intro = "For students seeking the **Bharti Airtel Scholarship Program**, official guidelines from the Bharti Airtel Foundation provide 100% tuition fee waivers, hostel allowances, laptop grants, and executive mentorship for technology and engineering undergraduate students:\n\n"
+        elif "bakery" in q_lower or ("business" in q_lower and "loan" in q_lower) or "bakery shop" in q_lower:
             intro = "To start a business (such as a bakery shop), the **Stand Up India Scheme** facilitates bank loans between ₹10 Lakh and ₹1 Crore for setting up greenfield enterprises in manufacturing, services, or trading:\n\n"
         elif "72" in q_lower or "senior citizen" in q_lower or ("grandmother" in q_lower and ("treatment" in q_lower or "medical" in q_lower)):
             intro = "Yes! Under official guidelines, senior citizens aged 70+ (including a 72-year-old family member) are covered under **Ayushman Bharat (PM-JAY)** for free cashless hospitalization cover up to ₹5 Lakh per family per year:\n\n"

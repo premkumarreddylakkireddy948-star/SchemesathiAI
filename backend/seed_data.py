@@ -107,6 +107,20 @@ SEED_SCHEMES = [
         "required_documents": "- Identity & Address Proof (Aadhaar/PAN/Voter ID)\n- SC/ST Caste Certificate (if applicable)\n- Business Plan / Detailed Project Report\n- MSME Udyam & GST Registration\n- 6 Months Bank Statements\n- Rent/Lease Deed for business location",
         "application_process": "1. Apply online via Stand Up Mitra portal (standupmitra.in) or bank branch.\n2. Hand-holding support by SIDBI, NABARD, and DIC.\n3. Credit appraisal and sanction by Lead District Manager bank branch.",
         "official_portal_url": "https://www.standupmitra.in"
+    },
+    {
+        "scheme_code": "CORP-EDU-AIRTEL-2024",
+        "name": "Bharti Airtel Scholarship Scheme (Bharti Airtel Foundation)",
+        "ministry_or_department": "Bharti Airtel Foundation / Bharti Enterprises",
+        "category": "Education & Scholarships",
+        "state": "All India",
+        "summary": "100% merit-cum-means scholarship for underprivileged students, with focus on girl students, pursuing technology & engineering degrees in top recognized tech institutes.",
+        "eligibility_criteria": "- Pursuing first-year B.Tech/B.E. in Technology, Computer Science, AI, Data Science, or Telecom in top institutes (IITs, NITs, top tech colleges).\n- Total annual family income <= ₹6,00,000.\n- Preference given to female students and SC/ST/PwD applicants.",
+        "benefits": "100% tuition fee waiver paid directly to college + Hostel/mess allowance + One-time laptop grant + Mentorship by Bharti Airtel executives.",
+        "income_limit": 600000.0,
+        "required_documents": "- JEE Advanced / JEE Main Rank Card & Allotment Letter\n- Family Income Certificate / Form 16\n- Class 10 & 12 Mark Sheets\n- Aadhaar Card & Student Bank Passbook",
+        "application_process": "1. Register online on Bharti Airtel Foundation Scholarship Portal (bhartifoundation.org).\n2. Upload documents and pass online panel interview.\n3. Scholarship disbursed directly to college and student DBTL account.",
+        "official_portal_url": "https://bhartifoundation.org"
     }
 ]
 
@@ -145,6 +159,8 @@ def seed_database():
                 scheme = db.query(Scheme).filter(Scheme.scheme_code == "GUJ-EDU-MYSY-2024").first()
             elif "stand_up" in filename.lower():
                 scheme = db.query(Scheme).filter(Scheme.scheme_code == "GOI-FIN-STANDUP-2024").first()
+            elif "airtel" in filename.lower() or "bharti" in filename.lower():
+                scheme = db.query(Scheme).filter(Scheme.scheme_code == "CORP-EDU-AIRTEL-2024").first()
 
             sname = scheme.name if scheme else "Government Scheme Guideline"
             scat = scheme.category if scheme else "General"

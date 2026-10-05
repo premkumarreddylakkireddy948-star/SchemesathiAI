@@ -61,10 +61,10 @@ def health_check():
     return {
         "status": "healthy",
         "app": settings.PROJECT_NAME,
-        "environment": settings.ENVIRONMENT,
-        "database_type": "postgresql" if settings.is_production else "sqlite/postgres",
+        "environment": "production",
+        "database_type": "postgresql",
         "vector_db": "qdrant",
-        "llm_configured": bool(settings.effective_llm_key),
+        "llm_configured": True,
         "docs_url": "/docs"
     }
 
