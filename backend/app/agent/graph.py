@@ -45,14 +45,28 @@ class SchemeSathiAgent:
                 tools = []
                 intent = "INFORMATIONAL"
                 
-                # Check for personalized discovery/eligibility query FIRST
+                # Check for explicit state-specific scheme query FIRST
+                is_ap_state = any(k in q for k in [
+                    "andhra pradesh", "andhra", "ap scheme", "ap schemes", "ap scholarship",
+                    "ap scholarships", "ap government", "ap student", "ap students", "jnanabhumi", "apcfss"
+                ])
+                
+                # Check for personalized discovery/eligibility query
                 is_personalized = any(k in q for k in [
                     "student", "b.tech", "scholarship", "tamil nadu", "family income",
                     "sc category", "my education", "relevant for me", "i am", "my family",
                     "find the most relevant", "schemes for me", "for my education"
                 ])
 
-                if is_personalized:
+                if is_ap_state:
+                    intent = "AP_STATE_SCHEMES"
+                    tools = [
+                        "search_web_for_government_schemes",
+                        "search_schemes",
+                        "search_knowledge_base",
+                        "check_eligibility"
+                    ]
+                elif is_personalized:
                     intent = "PERSONALIZED"
                     tools = [
                         "search_schemes",
@@ -236,11 +250,18 @@ class SchemeSathiAgent:
 
         # Native fallback execution if graph compile fails
         q = query.lower()
+        is_ap_state = any(k in q for k in [
+            "andhra pradesh", "andhra", "ap scheme", "ap schemes", "ap scholarship",
+            "ap scholarships", "ap government", "ap student", "ap students", "jnanabhumi", "apcfss"
+        ])
         is_personalized = any(k in q for k in [
             "student", "b.tech", "scholarship", "tamil nadu", "family income",
             "sc category", "my education", "relevant for me", "i am", "my family"
         ])
-        if is_personalized:
+        if is_ap_state:
+            intent = "AP_STATE_SCHEMES"
+            tools_used = ["search_web_for_government_schemes", "search_schemes", "check_eligibility"]
+        elif is_personalized:
             intent = "PERSONALIZED"
             tools_used = ["search_schemes", "check_eligibility", "search_knowledge_base", "search_web_for_government_schemes"]
         elif "compare" in q or " vs " in q:

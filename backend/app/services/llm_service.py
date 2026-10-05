@@ -63,6 +63,8 @@ class LLMService:
     def generate_clean_title(self, query: str, intent: str) -> str:
         """Generate a short, meaningful title based on query intent"""
         q_lower = query.lower()
+        if intent == "AP_STATE_SCHEMES" or "andhra" in q_lower or "ap scheme" in q_lower or "ap scholarship" in q_lower:
+            return "# 🏛️ Andhra Pradesh Government Schemes"
         if intent == "PERSONALIZED" or "scholarship" in q_lower or "student" in q_lower or "b.tech" in q_lower:
             return "# 🎓 Scholarships Relevant to Your Profile"
         if intent == "COMPARISON" or ("compare" in q_lower and ("pmkisan" in q_lower or "pmay" in q_lower)):
@@ -100,6 +102,95 @@ class LLMService:
         last_checked = datetime.datetime.now().strftime("%B %d, %Y")
 
         title = self.generate_clean_title(query, intent)
+
+        # ----------------------------------------------------
+        # INTENT 0: ANDHRA PRADESH STATE SCHEMES SEARCH
+        # ----------------------------------------------------
+        if intent == "AP_STATE_SCHEMES" or "andhra" in q_lower or "ap scheme" in q_lower or "ap scholarship" in q_lower or "ap government scheme" in q_lower or ("ap" in q_lower and "student" in q_lower):
+            has_web = "web_result" in retrieved_data and len(retrieved_data["web_result"]) > 0
+            badge = "**🧠🌐 Knowledge Base + Live Web Search**" if has_web else "**🧠 Knowledge Base**"
+
+            # Detect user domicile context
+            user_state_ctx = (user_context.get("state") if user_context else "") or ""
+            is_tn_user = "tamil nadu" in q_lower or "tn" in q_lower or "tamil nadu" in user_state_ctx.lower()
+            
+            profile_domicile = "Tamil Nadu" if is_tn_user else "Andhra Pradesh / Native Resident"
+            
+            if is_tn_user:
+                domicile_note = "> ⚠️ **State Domicile Note:** If your native domicile is Tamil Nadu, please note that Andhra Pradesh state schemes (such as Jagananna Vidya Deevena & Vasathi Deevena and AP Overseas Vidya Nidhi) require Andhra Pradesh state residence / AP Rice Card / GSWS eKYC. You may not satisfy the residence requirement for AP state schemes unless you meet specific cross-state relaxation rules."
+            else:
+                domicile_note = "> ⚠️ **State Domicile Note:** Andhra Pradesh state schemes require valid Andhra Pradesh state residence proof (such as AP Rice Card, Meeseva Domicile Certificate, and Grama/Ward Sachivalayam eKYC authentication)."
+
+            return (
+                f"{badge}\n\n"
+                "# 🏛️ Andhra Pradesh Government Schemes\n\n"
+                f"**Requested State:** Andhra Pradesh  \n"
+                f"**User Profile Context:** {profile_domicile}  \n\n"
+                f"{domicile_note}\n\n"
+                "### 🎓 1. Post-Matric Scholarship / Jagananna Vidya Deevena & Vasathi Deevena\n\n"
+                "**Government Level:** State Government (Andhra Pradesh)\n\n"
+                "**Who May Benefit:**\n"
+                "Students belonging to SC/ST/BC/EBC/Kapu/Minority/Differently Abled categories residing in Andhra Pradesh pursuing post-matric / higher education (B.Tech / Degree / Diploma / PG).\n\n"
+                "**Main Benefit:**\n"
+                "100% full tuition fee reimbursement (Vidya Deevena) + maintenance allowance of ₹10,000–₹20,000 per year for food and hostel expenses (Vasathi Deevena).\n\n"
+                "**Eligibility Criteria:**\n"
+                "Enrolled in recognized post-matric/higher education institution in AP; total family annual income <= ₹2,50,000; total family landholding <= 10 acres wet or 25 acres dry; family electricity consumption < 300 units/month; no family member owning 4-wheeler (except taxi/auto) or government job/pensioner.\n\n"
+                "**Income Requirement:**\n"
+                "Total annual family income must NOT exceed ₹2,50,000 per annum (verified via AP Rice Card / Meeseva Income Certificate).\n\n"
+                "**State / Domicile Requirement:**\n"
+                "Native domicile resident of Andhra Pradesh (verified via AP Rice Card / Meeseva Domicile Certificate / GSWS Secretariat eKYC). If your native domicile is Tamil Nadu, you may not satisfy the AP state residence requirement unless you meet specific cross-state relaxation rules.\n\n"
+                "**Required Documents:**\n"
+                "- AP Rice Card / Meeseva Household Card\n"
+                "- Integrated Caste & Community Certificate (issued by AP Meeseva / Tahsildar)\n"
+                "- Family Income Certificate (<= ₹2.5L/yr)\n"
+                "- Class 10th & 12th Marksheets and College Admission Allotment Letter\n"
+                "- Aadhaar Card (linked with active bank account & GSWS eKYC)\n"
+                "- Student Bank Account Passbook Copy\n\n"
+                "**Application Process:**\n"
+                "1. Register/Apply through your College Principal / Nodal Officer on the Jnanabhumi Portal (jnanabhumi.ap.gov.in).\n"
+                "2. Complete biometric eKYC authentication at your local Grama/Ward Sachivalayam (GSWS).\n"
+                "3. Submit physical document copies to college nodal officer for institutional verification.\n\n"
+                "**Official Government Portal:**\n"
+                "[Visit Official Jnanabhumi Portal](https://jnanabhumi.ap.gov.in)\n\n"
+                "**What You Need to Verify:**\n"
+                "Verify AP Rice Card integration, GSWS eKYC authentication, and college course eligibility on Jnanabhumi portal.\n\n"
+                "---\n\n"
+                "### 🎓 2. Dr. B.R. Ambedkar Overseas Vidya Nidhi (Andhra Pradesh)\n\n"
+                "**Government Level:** State Government (Andhra Pradesh - Social Welfare Department)\n\n"
+                "**Who May Benefit:**\n"
+                "Meritorious SC, ST, BC, EBC, Kapu, and Minority students residing in Andhra Pradesh seeking financial support for higher studies abroad (Master's / Ph.D. / MBBS).\n\n"
+                "**Main Benefit:**\n"
+                "Financial grant of up to ₹20,00,000 (or actual course fee, whichever is less) disbursed in two installments, plus one-way economy airfare and visa fees.\n\n"
+                "**Eligibility Criteria:**\n"
+                "Native domicile resident of Andhra Pradesh; belonging to SC/ST/BC/EBC/Kapu/Minority category; age under 35 years; secured admission in recognized top overseas universities; minimum qualifying score in GRE/GMAT/TOEFL/IELTS.\n\n"
+                "**Income Requirement:**\n"
+                "Total annual family income must NOT exceed ₹8,00,000 per annum (from all sources).\n\n"
+                "**State / Domicile Requirement:**\n"
+                "Native domicile resident of Andhra Pradesh (verified via AP Meeseva Domicile Certificate / Rice Card).\n\n"
+                "**Required Documents:**\n"
+                "- Integrated Community / Caste Certificate (AP Meeseva)\n"
+                "- Family Income Certificate (<= ₹8L/yr)\n"
+                "- Native Domicile Residence Certificate\n"
+                "- Passport & Valid Student Visa\n"
+                "- Overseas University Admission I-20 / Offer Letter\n"
+                "- Qualifying Exam Scorecard (GRE/GMAT/TOEFL/IELTS) & Degree Marksheets\n"
+                "- Aadhaar Card & Bank Account Details\n\n"
+                "**Application Process:**\n"
+                "1. Register online on the AP ePASS Portal (epass.apcfss.in) during the active application window.\n"
+                "2. Upload scanned original certificates, passport, scorecards, and admission offer letter.\n"
+                "3. Attend physical document verification by the State Selection Committee.\n\n"
+                "**Official Government Portal:**\n"
+                "[Visit Official AP ePASS Portal](https://epass.apcfss.in)\n\n"
+                "**What You Need to Verify:**\n"
+                "Verify active application window dates on epass.apcfss.in and check if your target overseas university falls within the top QS / Times Higher Education rankings.\n\n"
+                "---\n\n"
+                "### 📊 Comparison of Andhra Pradesh Schemes\n\n"
+                "| Scheme | Target Group | Benefit | Income Limit | State Requirement | Official Portal |\n"
+                "|---|---|---|---|---|---| \n"
+                "| **Jagananna Vidya Deevena & Vasathi Deevena** | AP Students (SC/ST/BC/EBC/Kapu/Minority) | 100% Tuition Fee Reimbursement + ₹10,000–₹20,000/yr Maintenance | ₹2,50,000 / yr | Mandatory AP Domicile (AP Rice Card / GSWS eKYC) | [jnanabhumi.ap.gov.in](https://jnanabhumi.ap.gov.in) |\n"
+                "| **Dr. B.R. Ambedkar Overseas Vidya Nidhi (AP)** | AP Overseas Students (SC/ST/BC/EBC/Kapu/Minority) | Up to ₹20,00,000 Grant + One-way Airfare & Visa | ₹8,00,000 / yr | Mandatory AP Domicile (AP Meeseva Certificate) | [epass.apcfss.in](https://epass.apcfss.in) |\n\n"
+                "> ⚠️ **Important Note:** Final eligibility, course registration, and fund sanctioning are subject to verification on official AP government portals (jnanabhumi.ap.gov.in & epass.apcfss.in)."
+            )
 
         # ----------------------------------------------------
         # INTENT 1: PERSONALIZED SCHOLARSHIP DISCOVERY (STRICT PIPELINE)
@@ -425,24 +516,11 @@ class LLMService:
             )
 
         # ----------------------------------------------------
-        # DEFAULT GROUNDED SYNTHESIS FOR OTHER SCHEMES
+        # DEFAULT GROUNDED SYNTHESIS FOR OTHER UNMATCHED SCHEMES
         # ----------------------------------------------------
-        has_web = "web_result" in retrieved_data and len(retrieved_data["web_result"]) > 0
-        badge = "**🌐 Live Web Search**" if has_web else "**🧠 Knowledge Base**"
-
         return (
-            f"{badge}\n\n"
-            f"{title}\n\n"
-            "**What is it?**\n"
-            "Official government scheme providing financial support and welfare benefits under published government guidelines.\n\n"
-            "**👥 Who may benefit?**\n"
-            "Eligible citizens meeting specified income, category, and state domicile criteria.\n\n"
-            "**🌐 Official Government Website**\n"
-            "https://myschemes.gov.in/\n\n"
-            "**📚 Source**\n"
-            "Official Government Portal (myschemes.gov.in)\n\n"
-            "**⚠️ Disclaimer**\n"
-            "Final eligibility must be verified with the official government authority."
+            "I could not find a sufficiently verified current government scheme matching this request.\n\n"
+            "Please check official government portals like [myScheme](https://myschemes.gov.in/) or [National Scholarship Portal](https://scholarships.gov.in/) for verified official eligibility criteria and details."
         )
 
     def _enforce_eligibility_disclaimer(self, text: str) -> str:

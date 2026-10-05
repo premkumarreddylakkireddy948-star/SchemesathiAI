@@ -10,11 +10,15 @@ logger = logging.getLogger(__name__)
 OFFICIAL_GOVT_DOMAINS_SUFFIXES = (
     ".gov.in",
     ".nic.in",
+    ".ap.gov.in",
+    "jnanabhumi.ap.gov.in",
+    "epass.apcfss.in",
+    "apcfss.in",
+    ".tn.gov.in",
     "india.gov.in",
     "myschemes.gov.in",
     "scholarships.gov.in",
     "aicte-india.org",
-    "apcfss.in",
     "mudra.org.in",
     "jansuraksha.gov.in",
     "maandhan.in",
@@ -64,8 +68,15 @@ class WebSearchService:
         """
         results = []
         try:
-            # 1. Primary Live Search Query targeting official portals
-            search_term = f"{query} site:gov.in OR site:nic.in OR official government portal guidelines"
+            # Detect target state in query
+            q_lower = query.lower()
+            state_target = ""
+            if "andhra" in q_lower or "ap" in q_lower:
+                state_target = "site:ap.gov.in OR site:gov.in"
+            elif "tamil nadu" in q_lower or "tn" in q_lower:
+                state_target = "site:tn.gov.in OR site:gov.in"
+
+            search_term = f"{query} {state_target} official government portal guidelines" if state_target else f"{query} site:gov.in OR site:nic.in official government portal guidelines"
             data = urllib.parse.urlencode({'q': search_term}).encode('utf-8')
             
             req = urllib.request.Request(
@@ -88,7 +99,6 @@ class WebSearchService:
                         link = a.get('href', '')
                         snippet = ''
                         
-                        # Look ahead for snippet text in following table rows
                         for j in range(1, 3):
                             if i + j < len(trs):
                                 snip_td = trs[i+j].find('td', class_='result-snippet')
@@ -114,9 +124,8 @@ class WebSearchService:
                                 break
                     i += 1
 
-            # 2. Fallback GET query if POST returned empty
             if not results:
-                encoded_q = urllib.parse.quote(f"{query} government scheme portal")
+                encoded_q = urllib.parse.quote(f"{query} official government portal")
                 req_get = urllib.request.Request(
                     f"https://html.duckduckgo.com/html/?q={encoded_q}",
                     headers={'User-Agent': self.user_agent}
@@ -146,7 +155,6 @@ class WebSearchService:
                                 "source": "Official Government Portal" if is_official else "Third-Party Reference"
                             })
 
-            # Sort results so official government sources come first
             results.sort(key=lambda x: 0 if x.get("is_official") else 1)
             return results[:max_results]
 
