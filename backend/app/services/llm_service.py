@@ -439,13 +439,17 @@ class LLMService:
             
             combined_text = "\n".join(details['texts'])
             
-            response += f"**Why it appears relevant:**\n"
-            response += f"Based on the information provided, this scheme appears potentially relevant because official guidelines indicate coverage for eligible beneficiaries meeting specified criteria in {details['category']}.\n\n"
+            response += f"**1. Scheme Overview & Key Financial Benefits:**\n"
+            response += f"{combined_text[:350].strip()}\n\n"
             
-            excerpt = combined_text[:350].strip()
+            response += f"**2. Key Eligibility Criteria & Conditions:**\n"
             if len(combined_text) > 350:
-                excerpt += "..."
-            response += f"**Official Details Excerpt:**\n> {excerpt}\n\n"
+                response += f"{combined_text[350:800].strip()}\n\n"
+            else:
+                response += f"- Beneficiary must satisfy category and income norms as per official guidelines.\n\n"
+                
+            response += f"**3. Official Application Portal:**\n"
+            response += f"🔗 [{sname} Official Portal]({details.get('url', 'https://myschemes.gov.in')})\n\n"
 
         response += (
             "--- \n"
