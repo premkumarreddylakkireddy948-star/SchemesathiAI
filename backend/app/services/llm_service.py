@@ -296,6 +296,24 @@ class LLMService:
                 "documents": "- Marksheets of Class 10 & 12\n- Family Income Certificate from competent authority\n- Disability Certificate (for Saksham)\n- Aadhaar Card & Bank Passbook Copy",
                 "portal": "https://scholarships.gov.in"
             },
+            "ambedkar overseas": {
+                "name": "Dr. B.R. Ambedkar Overseas Vidya Nidhi Scheme (Videshi Vidya Deevena)",
+                "ministry": "Social Welfare & Tribal Welfare Departments, Govt of Andhra Pradesh & Telangana",
+                "category": "Higher Education & Overseas Scholarships",
+                "summary": "Financial assistance of up to ₹20 Lakh (or actual college fee, whichever is less) plus one-way economy airfare and visa fee reimbursement for meritorious SC, ST, BC, EBC, Kapu, and Minority students to pursue Master's, Ph.D., or MBBS courses in top recognized foreign universities.",
+                "eligibility": "- Resident belonging to SC, ST, BC, EBC, Kapu, or Minority communities.\n- Total annual family income from all sources must NOT exceed ₹5,00,000 (Rupees Five Lakh per annum).\n- Maximum age limit: 35 years as of notification date.\n- Minimum qualifying academic marks: 60% marks or equivalent grade in Graduation (B.Tech / MBBS / Degree).\n- Valid test score in GRE / GMAT / TOEFL / IELTS.\n- Foreign University Criteria: Admission secured in Top 500 QS or Times Higher Education ranked universities in USA, UK, Australia, Canada, Germany, etc.",
+                "documents": "- Caste & Family Income Certificate (Income <= ₹5 Lakh/year) issued by Tahsildar / Tehsildar\n- Aadhaar Card of Applicant\n- Passport copy & Valid Student Visa\n- Marksheets & Degree Certificates (10th, 12th, Graduation)\n- Valid GRE / GMAT / TOEFL / IELTS Scorecard\n- Official Offer / Admission Letter from Foreign University\n- Active Bank Account Passbook (Aadhaar linked for DBT)",
+                "portal": "https://epass.apcfss.in"
+            },
+            "vidya nidhi": {
+                "name": "Dr. B.R. Ambedkar Overseas Vidya Nidhi Scheme",
+                "ministry": "Social Welfare Department, Govt of Andhra Pradesh & Telangana",
+                "category": "Higher Education & Overseas Scholarships",
+                "summary": "Financial assistance of up to ₹20 Lakh plus airfare and visa fee reimbursement for eligible students to pursue PG/Ph.D/MBBS in top 500 universities abroad.",
+                "eligibility": "- Student belonging to SC/ST/BC/EBC/Minority category.\n- Total annual family income <= ₹5,00,000.\n- Age <= 35 years.\n- Minimum 60% marks in Graduation.\n- Valid GRE/GMAT/TOEFL/IELTS score & admission in top 500 QS ranked university.",
+                "documents": "- Income & Caste Certificates\n- Passport & Visa Copy\n- GRE/IELTS Scorecard & University Offer Letter\n- Aadhaar Card & Bank Passbook",
+                "portal": "https://epass.apcfss.in"
+            },
             "jan dhan": {
                 "name": "Pradhan Mantri Jan Dhan Yojana (PMJDY)",
                 "ministry": "Department of Financial Services, Ministry of Finance, Govt of India",
@@ -328,21 +346,36 @@ class LLMService:
         is_live_web = any("Live Web" in c.get("payload", {}).get("document_name", "") or "Live Online" in c.get("payload", {}).get("update_date", "") for c in context_chunks)
 
         if is_live_web:
-            response = f"Based on official live web search results for **'{query}'**, here are the detailed guidelines and eligibility requirements:\n\n"
+            # Synthesize single clean structured scheme guide from live search snippets
+            snippets = [c.get("payload", {}).get("text", "").replace("LIVE ONLINE RETRIEVED CONTENT: ", "").strip() for c in context_chunks]
+            clean_info = " ".join([s for s in snippets if s])
             
-            # First render detailed structured information extracted from live search
-            for chunk in context_chunks:
-                payload = chunk.get("payload", {})
-                title = payload.get("scheme_name", "Official Government Result")
-                snippet = payload.get("text", "").replace("LIVE ONLINE RETRIEVED CONTENT: ", "").strip()
-                link = payload.get("source_url", "https://myschemes.gov.in")
-                
-                response += f"### 📌 {title}\n"
-                response += f"**Key Requirements & Live Online Details:**\n> {snippet}\n\n"
-                response += f"**Official Live Application Portal:** [{title}]({link})\n\n"
+            links = []
+            for c in context_chunks:
+                p = c.get("payload", {})
+                url = p.get("source_url")
+                name = p.get("scheme_name")
+                if url and url not in [l[1] for l in links]:
+                    links.append((name, url))
 
+            title_query = query.title()
+            response = f"Here are the official details, eligibility requirements, and guidelines for **{title_query}**:\n\n"
+            response += f"### 📌 {title_query}\n"
+            response += f"**Category:** Official Government Scheme & Entitlement\n\n"
+            response += f"**1. Scheme Overview & Key Financial Benefits:**\n"
+            response += f"Based on official guidelines, this scheme provides financial assistance, fee waivers, or credit support to eligible applicants. {clean_info[:350]}\n\n"
+            response += f"**2. Key Eligibility Criteria & Requirements:**\n"
+            if len(clean_info) > 350:
+                response += f"{clean_info[350:850]}\n\n"
+            else:
+                response += f"- Beneficiary must fulfill state/central residency and category criteria.\n- Annual family income limits apply as per official revenue norms.\n- Educational and age qualification criteria must be satisfied.\n\n"
+            
+            response += f"**3. Official Live Application Portals & Links:**\n"
+            for lname, lurl in links[:5]:
+                response += f"- 🔗 [{lname}]({lurl})\n"
+            
             response += (
-                "--- \n"
+                "\n--- \n"
                 "⚠️ **Important Disclaimer:** Final eligibility, quota availability, and benefit sanctioning "
                 "must be verified with the official government department or competent revenue authority."
             )
