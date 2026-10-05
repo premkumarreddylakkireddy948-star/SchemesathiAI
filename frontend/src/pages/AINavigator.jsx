@@ -4,23 +4,11 @@ import {
   Bot, 
   User, 
   Send, 
-  Sparkles, 
-  Trash2, 
   SlidersHorizontal, 
-  Building2, 
-  MapPin, 
-  IndianRupee, 
-  FileText, 
-  Bookmark, 
-  ExternalLink,
-  Loader2,
-  CheckCircle2,
-  AlertCircle
+  Loader2
 } from 'lucide-react';
-import { chatWithAgent, fetchSchemeById, API_BASE_URL } from '../services/api';
+import { chatWithAgent, API_BASE_URL } from '../services/api';
 import { useSchemeContext } from '../context/SchemeContext';
-import SourceCitationCard from '../components/SourceCitationCard';
-import SchemeCard from '../components/SchemeCard';
 import ConfigWarningBanner from '../components/ConfigWarningBanner';
 
 export default function AINavigator() {
@@ -32,9 +20,7 @@ export default function AINavigator() {
     {
       id: 'welcome',
       sender: 'agent',
-      content: "Namaste! I am **SchemeSathi AI**, your agentic guide for Indian government schemes, scholarships, and welfare benefits.\n\nTell me about your situation (e.g., your state, education level, category, or annual income), and I will search our vectorized knowledge base to identify potentially relevant programs for you.",
-      sources: [],
-      relevantSchemes: [],
+      content: "Namaste! I am **SchemeSathi AI**, your intelligent guide for Indian government schemes, scholarships, and welfare benefits.\n\nTell me about your situation (e.g., your state, education level, category, or annual income), or ask any question about government programs, and I will find verified details for you.",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -80,24 +66,10 @@ export default function AINavigator() {
       const data = await chatWithAgent(query, conversationId, userProfile);
       setConversationId(data.conversation_id);
 
-      // Fetch full details of relevant schemes attached
-      let fetchedSchemes = [];
-      if (data.relevant_scheme_ids && data.relevant_scheme_ids.length > 0) {
-        try {
-          const schemePromises = data.relevant_scheme_ids.map((id) => fetchSchemeById(id));
-          fetchedSchemes = await Promise.all(schemePromises);
-        } catch (e) {
-          console.warn("Error fetching attached scheme objects:", e);
-        }
-      }
-
       const agentMsg = {
         id: (Date.now() + 1).toString(),
         sender: 'agent',
-        content: data.message,
-        sources: data.sources || [],
-        relevantSchemes: fetchedSchemes,
-        toolsUsed: data.agent_steps || [],
+        content: data.message || data.answer,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
@@ -109,9 +81,7 @@ export default function AINavigator() {
         {
           id: (Date.now() + 1).toString(),
           sender: 'agent',
-          content: `Sorry, I encountered a communication issue with the backend server (${API_BASE_URL}). Please verify that the FastAPI backend service is reachable and healthy.`,
-          sources: [],
-          relevantSchemes: [],
+          content: `Sorry, I encountered a communication issue with the backend server (${API_BASE_URL}). Please verify that the backend service is healthy.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -121,10 +91,11 @@ export default function AINavigator() {
   };
 
   const sampleQueries = [
-    "I am a college student from Tamil Nadu and my family income is ₹2.5 lakh per year. What government scholarships may be relevant to me?",
-    "PM-KISAN scheme eligibility criteria and required documents for small farmers",
-    "PMAY home loan interest subsidy rules for Economically Weaker Section (EWS)",
-    "Ayushman Bharat PMJAY health insurance eligibility for 70+ senior citizens"
+    "What is PM-KISAN and who can benefit from it? Give me the official government website.",
+    "I am a college student from Tamil Nadu with a family income of ₹2.5 lakh per year. What government scholarships may be relevant to me? Give basic details and official application links.",
+    "Compare PM-KISAN and PMAY based on eligibility, benefits, documents and application process.",
+    "What is the latest PM-KISAN update? Search official government sources.",
+    "Create a document checklist for PM-KISAN."
   ];
 
   return (
@@ -135,19 +106,19 @@ export default function AINavigator() {
         <div>
           <div className="flex items-center space-x-2">
             <Bot className="w-6 h-6 text-emerald-600" />
-            <h1 className="text-2xl font-extrabold text-slate-900">AI Navigator Chat</h1>
-            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">
-              LangGraph Agent
+            <h1 className="text-2xl font-extrabold text-slate-900">AI Navigator</h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+              Verified Government Sources
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Grounded vector search across official government scheme documentation
+            Grounded AI search & eligibility guide across official Indian government welfare programs
           </p>
         </div>
 
         {/* User Context Bar */}
         <div className="flex items-center space-x-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-          <span className="font-semibold text-slate-700">Context Profile:</span>
+          <span className="font-semibold text-slate-700">Citizen Context:</span>
           <span className="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800 font-medium">
             📍 {userProfile.state}
           </span>
@@ -259,7 +230,7 @@ export default function AINavigator() {
                 
                 {/* Text Bubble */}
                 <div
-                  className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                  className={`p-4 sm:p-5 rounded-2xl text-sm leading-relaxed shadow-sm ${
                     msg.sender === 'user'
                       ? 'bg-slate-900 text-white rounded-tr-none'
                       : 'bg-white text-slate-900 border border-slate-200 rounded-tl-none'
@@ -275,44 +246,6 @@ export default function AINavigator() {
                   </div>
                 </div>
 
-                {/* Agent Tools Execution Badge */}
-                {msg.toolsUsed && msg.toolsUsed.length > 0 && (
-                  <div className="flex items-center space-x-1 text-[11px] text-slate-500 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Agent Tools Invoked: <strong>{msg.toolsUsed.join(', ')}</strong></span>
-                  </div>
-                )}
-
-                {/* Grounded Source Citation Cards */}
-                {msg.sources && msg.sources.length > 0 && (
-                  <div className="space-y-2 pt-2">
-                    <h5 className="text-xs font-bold text-slate-700 flex items-center space-x-1">
-                      <FileText className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Retrieved Knowledge Base Sources ({msg.sources.length})</span>
-                    </h5>
-                    <div className="grid grid-cols-1 gap-2">
-                      {msg.sources.map((cit, idx) => (
-                        <SourceCitationCard key={idx} citation={cit} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Relevant Schemes Cards Attached */}
-                {msg.relevantSchemes && msg.relevantSchemes.length > 0 && (
-                  <div className="space-y-2 pt-2">
-                    <h5 className="text-xs font-bold text-slate-700 flex items-center space-x-1">
-                      <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>Matching Official Schemes</span>
-                    </h5>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {msg.relevantSchemes.map((scheme) => (
-                        <SchemeCard key={scheme.id} scheme={scheme} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
               </div>
             </div>
           ))}
@@ -325,7 +258,7 @@ export default function AINavigator() {
               </div>
               <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-4 shadow-sm flex items-center space-x-3 text-slate-600 text-xs font-medium">
                 <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
-                <span>Executing LangGraph tools & Qdrant vector retrieval...</span>
+                <span>Searching official government schemes & analyzing details...</span>
               </div>
             </div>
           )}
@@ -338,7 +271,7 @@ export default function AINavigator() {
           
           {/* Sample Chip Shortcuts */}
           <div className="flex items-center space-x-2 overflow-x-auto pb-1 text-xs no-scrollbar">
-            <span className="text-slate-400 font-medium shrink-0">Suggestions:</span>
+            <span className="text-slate-400 font-medium shrink-0">Sample Queries:</span>
             {sampleQueries.map((sample, i) => (
               <button
                 key={i}

@@ -1,9 +1,10 @@
 import json
 import logging
-from typing import Dict, Any, List, Optional, TypedDict, Annotated
+from typing import Dict, Any, List, Optional, TypedDict
 from app.agent.tools import (
     search_schemes,
     search_knowledge_base,
+    search_web_for_government_schemes,
     get_scheme_details,
     check_eligibility,
     get_required_documents,
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 # State definition for LangGraph Agent
 class AgentState(TypedDict):
     query: str
+    intent: str
     user_context: Optional[Dict[str, Any]]
     tool_calls: List[str]
     retrieved_data: Dict[str, Any]
@@ -31,7 +33,7 @@ class SchemeSathiAgent:
         self._graph = self._build_graph()
 
     def _build_graph(self):
-        """Build LangGraph flow or fallback execution pipeline"""
+        """Build LangGraph flow with strict intent detection and tool routing"""
         try:
             from langgraph.graph import StateGraph, END
             
@@ -39,32 +41,44 @@ class SchemeSathiAgent:
 
             # Node 1: Intent Analysis & Tool Selection
             def analyze_and_route(state: AgentState):
-                q = state["query"].lower()
+                q = state["query"].lower().strip()
                 tools = []
+                intent = "INFORMATIONAL"
                 
-                # Intelligent keyword routing
-                if "compare" in q or "difference" in q or "vs" in q:
-                    tools.append("compare_schemes")
-                if "eligibl" in q or "qualify" in q or "income" in q or "student" in q or "farmer" in q:
-                    tools.append("check_eligibility")
-                    tools.append("search_schemes")
-                if "document" in q or "checklist" in q or "proof" in q or "certificate" in q:
-                    tools.append("get_required_documents")
-                    tools.append("create_document_checklist")
-                if "apply" in q or "how to" in q or "portal" in q or "link" in q:
-                    tools.append("get_application_process")
-                
-                # Default always include RAG Knowledge base search & scheme search
-                if not tools:
-                    tools = ["search_knowledge_base", "search_schemes"]
+                # 1. Checklist request
+                if "checklist" in q:
+                    intent = "CHECKLIST"
+                    tools = ["create_document_checklist"]
+                # 2. Document request
+                elif "what document" in q or "documents do i need" in q or "proofs needed" in q:
+                    intent = "DOCUMENTS_ONLY"
+                    tools = ["get_required_documents", "search_knowledge_base"]
+                # 3. Comparison request
+                elif "compare" in q or " vs " in q or "versus" in q or "difference between" in q:
+                    intent = "COMPARISON"
+                    tools = ["compare_schemes", "search_knowledge_base"]
+                # 4. Latest / Current news
+                elif "latest" in q or "update" in q or "current" in q or "recent" in q or "2026" in q:
+                    intent = "LATEST_NEWS"
+                    tools = ["search_web_for_government_schemes"]
+                # 5. Personalized eligibility
+                elif any(k in q for k in ["student", "income", "from ", "my family", "i am", "for me"]):
+                    intent = "PERSONALIZED"
+                    tools = ["search_schemes", "check_eligibility", "search_knowledge_base"]
+                # 6. Default informational query ("What is PM-KISAN?")
                 else:
-                    tools.append("search_knowledge_base")
+                    intent = "INFORMATIONAL"
+                    tools = ["search_knowledge_base", "get_scheme_details"]
 
-                return {"tool_calls": list(set(tools))}
+                return {
+                    "intent": intent,
+                    "tool_calls": list(set(tools))
+                }
 
             # Node 2: Execute Tools
             def execute_tools(state: AgentState):
                 query = state["query"]
+                intent = state.get("intent", "INFORMATIONAL")
                 tools_to_run = state.get("tool_calls", [])
                 retrieved = {}
                 sources = []
@@ -76,12 +90,33 @@ class SchemeSathiAgent:
                     retrieved["rag_result"] = rag_res
                     sources.extend(rag_res.get("sources", []))
 
+                # Execute Web Search Tool
+                if "search_web_for_government_schemes" in tools_to_run:
+                    web_res = search_web_for_government_schemes(query, max_results=5)
+                    retrieved["web_result"] = web_res
+
                 # Execute Scheme Search Tool
                 if "search_schemes" in tools_to_run:
                     schemes = search_schemes(query)
                     retrieved["schemes"] = schemes
                     for s in schemes[:3]:
                         scheme_ids.append(s["id"])
+
+                # Execute Comparison Tool
+                if "compare_schemes" in tools_to_run:
+                    # Try to match schemes in query
+                    table_res = compare_schemes([query])
+                    retrieved["comparison"] = table_res
+
+                # Execute Checklist Tool
+                if "create_document_checklist" in tools_to_run:
+                    chk_res = create_document_checklist(query)
+                    retrieved["checklist"] = chk_res
+
+                # Execute Documents Tool
+                if "get_required_documents" in tools_to_run:
+                    docs_res = get_required_documents(query)
+                    retrieved["required_documents"] = docs_res
 
                 # Execute Eligibility Tool if profile exists
                 if "check_eligibility" in tools_to_run and scheme_ids:
@@ -106,18 +141,53 @@ class SchemeSathiAgent:
             # Node 3: Synthesize Grounded Answer
             def generate_final_response(state: AgentState):
                 query = state["query"]
+                intent = state.get("intent", "INFORMATIONAL")
                 retrieved = state.get("retrieved_data", {})
-                rag_res = retrieved.get("rag_result", {})
+                user_context = state.get("user_context")
                 
-                if rag_res and rag_res.get("answer"):
-                    answer = rag_res["answer"]
-                else:
-                    system_prompt = (
-                        "You are SchemeSathi AI. Provide a clear, grounded response to the user's query.\n"
-                        "Never state 'You are eligible.' Instead say 'Based on the information provided, this scheme appears potentially relevant because...'\n"
-                        "State that final eligibility must be verified with official government authorities."
-                    )
-                    answer = llm_service.generate_response(system_prompt, query)
+                # Context chunks pass to LLM service
+                context_chunks = []
+                if "rag_result" in retrieved and retrieved["rag_result"].get("sources"):
+                    for s in retrieved["rag_result"].get("sources", []):
+                        context_chunks.append({
+                            "payload": {
+                                "scheme_name": s.get("scheme_name"),
+                                "document_name": s.get("document_name"),
+                                "source_url": s.get("source_url"),
+                                "category": s.get("category"),
+                                "text": s.get("snippet")
+                            }
+                        })
+                
+                if "web_result" in retrieved:
+                    for w in retrieved["web_result"]:
+                        context_chunks.append({
+                            "payload": {
+                                "scheme_name": w.get("title"),
+                                "document_name": "Official Government Portal" if w.get("is_official") else "Third-Party Reference",
+                                "source_url": w.get("link"),
+                                "category": "Live Online Search",
+                                "text": w.get("snippet")
+                            }
+                        })
+
+                system_prompt = (
+                    "You are SchemeSathi AI. Synthesize clean, grounded, user-facing markdown responses.\n"
+                    "RULES:\n"
+                    "1. Never output debug logs, tool calls, internal json, top-k chunks, or reasoning.\n"
+                    "2. Ground information only in official government sources when available.\n"
+                    "3. For comparison queries, output a full Markdown table with columns: Feature | Scheme A | Scheme B.\n"
+                    "4. Never say 'You are eligible.' Say 'Based on the information provided, this scheme appears potentially relevant...'\n"
+                    "5. Final eligibility must be verified on official government portals."
+                )
+
+                answer = llm_service.generate_formatted_response(
+                    query=query,
+                    intent=intent,
+                    retrieved_data=retrieved,
+                    context_chunks=context_chunks,
+                    user_context=user_context
+                )
                 
                 return {"final_response": answer}
 
@@ -139,12 +209,13 @@ class SchemeSathiAgent:
     def run(self, query: str, user_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Execute the agent pipeline and return grounded answer, sources, and scheme IDs.
-        No chain-of-thought is exposed to the user.
+        No chain-of-thought or internal tool trace is exposed in user answer.
         """
         if self._graph is not None:
             try:
                 initial_state: AgentState = {
                     "query": query,
+                    "intent": "",
                     "user_context": user_context,
                     "tool_calls": [],
                     "retrieved_data": {},
@@ -162,16 +233,41 @@ class SchemeSathiAgent:
             except Exception as e:
                 logger.error(f"Error in LangGraph execution: {e}")
 
-        # High reliability fallback execution pipeline
+        # Native fallback execution if graph compile fails
+        q = query.lower()
+        if "compare" in q or " vs " in q:
+            intent = "COMPARISON"
+            tools_used = ["compare_schemes", "search_knowledge_base"]
+        elif "checklist" in q:
+            intent = "CHECKLIST"
+            tools_used = ["create_document_checklist"]
+        elif "latest" in q or "update" in q:
+            intent = "LATEST_NEWS"
+            tools_used = ["search_web_for_government_schemes"]
+        elif any(k in q for k in ["student", "income", "from ", "i am"]):
+            intent = "PERSONALIZED"
+            tools_used = ["search_schemes", "check_eligibility", "search_knowledge_base"]
+        else:
+            intent = "INFORMATIONAL"
+            tools_used = ["search_knowledge_base", "get_scheme_details"]
+
         rag_res = search_knowledge_base(query, top_k=5)
         schemes = search_schemes(query)
         scheme_ids = [s["id"] for s in schemes[:3]]
         
+        answer = llm_service.generate_formatted_response(
+            query=query,
+            intent=intent,
+            retrieved_data={"rag_result": rag_res, "schemes": schemes},
+            context_chunks=[],
+            user_context=user_context
+        )
+
         return {
-            "answer": rag_res.get("answer", "No response generated."),
+            "answer": answer,
             "sources": rag_res.get("sources", []),
             "scheme_ids": scheme_ids,
-            "tools_used": ["search_knowledge_base", "search_schemes", "check_eligibility"]
+            "tools_used": tools_used
         }
 
 agent_executor = SchemeSathiAgent()

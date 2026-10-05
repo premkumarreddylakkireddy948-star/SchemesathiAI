@@ -7,6 +7,7 @@ from typing import List, Dict, Any, Optional
 from app.services.embedding_service import get_text_embedding, get_batch_embeddings
 from app.services.qdrant_service import qdrant_service
 from app.services.llm_service import llm_service
+from app.services.web_search_service import is_official_government_domain
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,6 @@ class RAGEngine:
         while start < text_len:
             end = min(start + chunk_size, text_len)
             
-            # Adjust end to nearest sentence or line boundary if possible
             if end < text_len:
                 next_newline = text.find("\n", end - 50, end + 50)
                 if next_newline != -1:
@@ -108,7 +108,7 @@ class RAGEngine:
                     "scheme_name": scheme_name,
                     "document_name": document_name,
                     "source_url": source_url,
-                    "page_number": (idx // 3) + 1,  # Estimated page number
+                    "page_number": (idx // 3) + 1,
                     "chunk_index": idx,
                     "category": category,
                     "update_date": update_date_str,
@@ -128,16 +128,12 @@ class RAGEngine:
         q_lower = query.lower()
         normalized = query
         
-        # Typos / variations for PM-KISAN
         if "kissan" in q_lower or "pmkisan" in q_lower or "pm kissan" in q_lower or "pm kisan" in q_lower or "kisan" in q_lower:
             normalized = normalized.replace("kissan", "kisan").replace("pmkisan", "PM-KISAN").replace("pm kissan", "PM-KISAN").replace("pm kisan", "PM-KISAN")
-        # Variations for PM-JAY / Ayushman Bharat
         if "pmjay" in q_lower or "pm-jay" in q_lower or "ayushman" in q_lower:
             normalized = normalized.replace("pmjay", "PM-JAY").replace("pm jay", "PM-JAY")
-        # Variations for PMAY
         if "pmay" in q_lower or "awas yojana" in q_lower:
             normalized = normalized.replace("pmay", "PMAY")
-        # Variations for Bharti Airtel Scholarship
         if "airtel" in q_lower or "bharti" in q_lower:
             normalized = normalized.replace("airtel", "Bharti Airtel").replace("bharti", "Bharti Airtel")
 
@@ -149,7 +145,6 @@ class RAGEngine:
         query_vector = get_text_embedding(normalized)
         results = qdrant_service.search(query_vector, top_k=top_k * 2 if top_k else 10, category=category)
         
-        # Detect target scheme terms in query
         q_lower = normalized.lower()
         target_scheme_keywords = []
         if "kisan" in q_lower or "pm-kisan" in q_lower:
@@ -160,13 +155,8 @@ class RAGEngine:
         if "pmay" in q_lower or "awas" in q_lower:
             target_scheme_keywords.append("awas")
             target_scheme_keywords.append("pmay")
-        if "stand up" in q_lower or "standup" in q_lower:
-            target_scheme_keywords.append("stand up")
         if "post-matric" in q_lower:
             target_scheme_keywords.append("post-matric")
-        if "airtel" in q_lower or "bharti" in q_lower:
-            target_scheme_keywords.append("airtel")
-            target_scheme_keywords.append("bharti")
 
         if target_scheme_keywords:
             matched_chunks = []
@@ -183,10 +173,8 @@ class RAGEngine:
                 else:
                     other_chunks.append(chunk)
             
-            # If target scheme matches were found, return matched chunks first
             if matched_chunks:
                 return matched_chunks[:top_k]
-            
             return results[:top_k]
         
         return results[:top_k]
@@ -199,9 +187,7 @@ class RAGEngine:
         user_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Pure Online Web Search Retrieval Pipeline:
-        Performs live online retrieval from official web sources (.gov.in, .nic.in, myschemes.gov.in)
-        and synthesizes answers strictly based on real-time live online search results.
+        Retrieval Pipeline with intent detection and strict source verification.
         """
         from app.services.web_search_service import web_search_service
         
@@ -211,40 +197,43 @@ class RAGEngine:
         chunks = []
         if web_results:
             for idx, w_res in enumerate(web_results):
+                is_off = is_official_government_domain(w_res["link"])
                 chunks.append({
                     "payload": {
                         "scheme_name": w_res["title"],
-                        "document_name": "Official Live Web Portal (.gov.in)",
+                        "document_name": "Official Government Portal" if is_off else "Third-Party Reference",
                         "source_url": w_res["link"],
                         "page_number": 1,
                         "chunk_index": idx + 1,
                         "category": category or "Live Government Portal",
                         "update_date": "Live Online Search",
-                        "text": f"LIVE ONLINE RETRIEVED CONTENT: {w_res['snippet']} (Official URL: {w_res['link']})"
+                        "text": f"{w_res['snippet']} (URL: {w_res['link']})"
                     }
                 })
         else:
-            # Fallback to local vector search if online connection is unavailable
             chunks = self.retrieve_top_chunks(query, top_k=top_k, category=category)
 
-        # System prompt for live online retrieval agent
-        system_prompt = (
-            "You are SchemeSathi AI, an intelligent agentic guide for Indian government schemes, "
-            "scholarships, and welfare programs.\n"
-            "SYSTEM RULES:\n"
-            "1. Ground your response STRICTLY in the provided live online web retrieval search results.\n"
-            "2. CRITICAL RULE: Focus your response PRIMARILY on the specific scheme or question requested by the user.\n"
-            "3. NEVER state 'You are eligible.' Instead say 'Based on live official online portal guidelines, this scheme appears potentially relevant because...'\n"
-            "4. Clearly state that final eligibility must be verified with the official government authority.\n"
-            "5. Always present the live official application portal link retrieved from the web search.\n"
-            "6. Be clear, accurate, encouraging, and structured using markdown headings and bullet points."
+        # Detect intent
+        q_lower = query.lower().strip()
+        if "checklist" in q_lower:
+            intent = "CHECKLIST"
+        elif "compare" in q_lower or " vs " in q_lower or "versus" in q_lower:
+            intent = "COMPARISON"
+        elif "latest" in q_lower or "update" in q_lower or "2026" in q_lower:
+            intent = "LATEST_NEWS"
+        elif any(k in q_lower for k in ["student", "income", "from ", "i am", "scholarship"]):
+            intent = "PERSONALIZED"
+        else:
+            intent = "INFORMATIONAL"
+
+        grounded_answer = llm_service.generate_formatted_response(
+            query=query,
+            intent=intent,
+            retrieved_data={"web_result": web_results},
+            context_chunks=chunks,
+            user_context=user_context
         )
 
-        user_msg = f"User Profile Context: {user_context}\nUser Request: {query}" if user_context else query
-
-        grounded_answer = llm_service.generate_response(system_prompt, user_msg, chunks)
-
-        # Build clean live online source citations
         citations = []
         seen_keys = set()
         for c in chunks:
@@ -254,11 +243,11 @@ class RAGEngine:
                 seen_keys.add(key)
                 citations.append({
                     "scheme_name": p.get("scheme_name", "Government Scheme"),
-                    "document_name": p.get("document_name", "Official Live Web Portal"),
+                    "document_name": p.get("document_name", "Official Government Portal"),
                     "source_url": p.get("source_url", "https://myschemes.gov.in"),
                     "page_number": p.get("page_number", 1),
                     "chunk_index": p.get("chunk_index", 0),
-                    "category": p.get("category", "Live Government Portal"),
+                    "category": p.get("category", "General"),
                     "update_date": p.get("update_date", "Live Online"),
                     "snippet": p.get("text", "")[:250] + "..."
                 })
@@ -271,4 +260,3 @@ class RAGEngine:
         }
 
 rag_engine = RAGEngine()
-

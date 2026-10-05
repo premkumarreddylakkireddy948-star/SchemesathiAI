@@ -7,6 +7,51 @@ from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
+OFFICIAL_GOVT_DOMAINS_SUFFIXES = (
+    ".gov.in",
+    ".nic.in",
+    "india.gov.in",
+    "myschemes.gov.in",
+    "scholarships.gov.in",
+    "aicte-india.org",
+    "apcfss.in",
+    "mudra.org.in",
+    "jansuraksha.gov.in",
+    "maandhan.in",
+    "vidyalakshmi.co.in",
+    "pmkvyofficial.org",
+    "nrlm.gov.in",
+    "indiapost.gov.in",
+    "kviconline.gov.in",
+    "pmsuryaghar.gov.in",
+    "pmvishwakarma.gov.in"
+)
+
+def is_official_government_domain(url: str) -> bool:
+    """Strictly checks whether a given URL belongs to an official government domain."""
+    if not url or not isinstance(url, str):
+        return False
+    url = url.strip()
+    if not url.startswith("http://") and not url.startswith("https://"):
+        url = "https://" + url
+    try:
+        parsed = urllib.parse.urlparse(url)
+        netloc = parsed.netloc.lower()
+        if ":" in netloc:
+            netloc = netloc.split(":")[0]
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+        
+        if netloc.endswith(".gov.in") or netloc.endswith(".nic.in"):
+            return True
+            
+        for official_domain in OFFICIAL_GOVT_DOMAINS_SUFFIXES:
+            if netloc == official_domain or netloc.endswith("." + official_domain):
+                return True
+        return False
+    except Exception:
+        return False
+
 class WebSearchService:
     def __init__(self):
         self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -15,11 +60,12 @@ class WebSearchService:
         """
         Performs real-time live online web search using DuckDuckGo search endpoint
         and returns structured title, live snippet content, and official links.
+        Prioritizes official government (.gov.in, .nic.in, official ministry) domains.
         """
         results = []
         try:
-            # 1. Primary Live Search Query
-            search_term = f"{query} India government scheme guidelines portal"
+            # 1. Primary Live Search Query targeting official portals
+            search_term = f"{query} site:gov.in OR site:nic.in OR official government portal guidelines"
             data = urllib.parse.urlencode({'q': search_term}).encode('utf-8')
             
             req = urllib.request.Request(
@@ -56,19 +102,21 @@ class WebSearchService:
                                 link = urllib.parse.unquote(match.group(1))
 
                         if title and (snippet or link):
+                            is_official = is_official_government_domain(link)
                             results.append({
                                 "title": title,
                                 "snippet": snippet,
                                 "link": link,
-                                "source": "Live Web Search"
+                                "is_official": is_official,
+                                "source": "Official Government Portal" if is_official else "Third-Party Reference"
                             })
-                            if len(results) >= max_results:
+                            if len(results) >= max_results * 2:
                                 break
                     i += 1
 
             # 2. Fallback GET query if POST returned empty
             if not results:
-                encoded_q = urllib.parse.quote(query)
+                encoded_q = urllib.parse.quote(f"{query} government scheme portal")
                 req_get = urllib.request.Request(
                     f"https://html.duckduckgo.com/html/?q={encoded_q}",
                     headers={'User-Agent': self.user_agent}
@@ -77,7 +125,7 @@ class WebSearchService:
                     html = response.read().decode('utf-8', errors='ignore')
                     soup = BeautifulSoup(html, 'html.parser')
                     for result_div in soup.find_all('div', class_='result'):
-                        if len(results) >= max_results:
+                        if len(results) >= max_results * 2:
                             break
                         title_elem = result_div.find('a', class_='result__a')
                         snippet_elem = result_div.find('a', class_='result__snippet')
@@ -89,14 +137,18 @@ class WebSearchService:
                                 match = re.search(r'uddg=([^&]+)', link)
                                 if match:
                                     link = urllib.parse.unquote(match.group(1))
+                            is_official = is_official_government_domain(link)
                             results.append({
                                 "title": title,
                                 "snippet": snippet,
                                 "link": link,
-                                "source": "Live Web Search"
+                                "is_official": is_official,
+                                "source": "Official Government Portal" if is_official else "Third-Party Reference"
                             })
 
-            return results
+            # Sort results so official government sources come first
+            results.sort(key=lambda x: 0 if x.get("is_official") else 1)
+            return results[:max_results]
 
         except Exception as e:
             logger.error(f"Live web search execution failed: {e}")
