@@ -45,20 +45,44 @@ class SchemeSathiAgent:
                 tools = []
                 intent = "INFORMATIONAL"
                 
-                # Check for explicit state-specific scheme query FIRST
+                named_keywords = [
+                    "reliance", "reliance foundation", "rf scholarship",
+                    "tata scholarship", "tata trusts", "tata scholarship details",
+                    "hdfc", "hdfc scholarship", "hdfc parivartan",
+                    "aditya birla", "lic scholarship", "sitaram jindal", "narotam sekhsaria",
+                    "foundation scholarship", "corporate scholarship",
+                    "private scholarship", "named education scholarship"
+                ]
+                is_named_scholarship = any(k in q for k in named_keywords)
+                is_comparison = any(k in q for k in ["compare", " vs ", "versus", "difference between"])
+                
+                # Check for explicit state-specific scheme query (Andhra Pradesh)
                 is_ap_state = any(k in q for k in [
                     "andhra pradesh", "andhra", "ap scheme", "ap schemes", "ap scholarship",
-                    "ap scholarships", "ap government", "ap student", "ap students", "jnanabhumi", "apcfss"
-                ])
+                    "ap scholarships", "ap government", "jnanabhumi", "apcfss"
+                ]) and "tamil nadu" not in q
                 
                 # Check for personalized discovery/eligibility query
                 is_personalized = any(k in q for k in [
-                    "student", "b.tech", "scholarship", "tamil nadu", "family income",
-                    "sc category", "my education", "relevant for me", "i am", "my family",
-                    "find the most relevant", "schemes for me", "for my education"
-                ])
+                    "find scholarships for me", "schemes for me", "relevant for me", "for my education",
+                    "find the most relevant"
+                ]) or (any(k in q for k in ["student", "b.tech", "scholarship", "tamil nadu", "family income", "sc category", "i am", "my family"]) and not is_named_scholarship)
 
-                if is_ap_state:
+                # Priority 1: Direct scheme vs scheme comparison request
+                if is_comparison:
+                    intent = "COMPARISON"
+                    tools = ["compare_schemes", "search_knowledge_base", "search_web_for_government_schemes"]
+                # Priority 2: Named Foundation / Organization Scholarship Details Query
+                elif is_named_scholarship:
+                    intent = "NAMED_SCHOLARSHIP_DETAILS"
+                    tools = [
+                        "search_web_for_government_schemes",
+                        "search_schemes",
+                        "search_knowledge_base",
+                        "check_eligibility"
+                    ]
+                # Priority 3: State-Specific Query
+                elif is_ap_state:
                     intent = "AP_STATE_SCHEMES"
                     tools = [
                         "search_web_for_government_schemes",
@@ -66,6 +90,7 @@ class SchemeSathiAgent:
                         "search_knowledge_base",
                         "check_eligibility"
                     ]
+                # Priority 4: Personalized Discovery / Eligibility
                 elif is_personalized:
                     intent = "PERSONALIZED"
                     tools = [
@@ -76,23 +101,19 @@ class SchemeSathiAgent:
                         "get_required_documents",
                         "get_application_process"
                     ]
-                # 1. Checklist request
+                # Priority 5: Checklist request
                 elif "checklist" in q:
                     intent = "CHECKLIST"
                     tools = ["create_document_checklist"]
-                # 2. Document request
+                # Priority 6: Document request
                 elif "document" in q or "proof" in q or "certificate" in q or "papers" in q:
                     intent = "DOCUMENTS_ONLY"
                     tools = ["get_required_documents", "search_knowledge_base"]
-                # 3. Direct scheme vs scheme comparison request
-                elif ("compare" in q or " vs " in q or "versus" in q or "difference between" in q) and not is_personalized:
-                    intent = "COMPARISON"
-                    tools = ["compare_schemes", "search_knowledge_base"]
-                # 4. Latest / Current news
+                # Priority 7: Latest / Current news
                 elif "latest" in q or "update" in q or "current" in q or "recent" in q or "2026" in q:
                     intent = "LATEST_NEWS"
                     tools = ["search_web_for_government_schemes"]
-                # 5. Default informational query ("What is PM-KISAN?")
+                # Priority 8: Default informational query ("What is PM-KISAN?")
                 else:
                     intent = "INFORMATIONAL"
                     tools = ["search_knowledge_base", "get_scheme_details"]
@@ -250,29 +271,35 @@ class SchemeSathiAgent:
 
         # Native fallback execution if graph compile fails
         q = query.lower()
-        is_ap_state = any(k in q for k in [
-            "andhra pradesh", "andhra", "ap scheme", "ap schemes", "ap scholarship",
-            "ap scholarships", "ap government", "ap student", "ap students", "jnanabhumi", "apcfss"
-        ])
-        is_personalized = any(k in q for k in [
-            "student", "b.tech", "scholarship", "tamil nadu", "family income",
-            "sc category", "my education", "relevant for me", "i am", "my family"
-        ])
-        if is_ap_state:
-            intent = "AP_STATE_SCHEMES"
-            tools_used = ["search_web_for_government_schemes", "search_schemes", "check_eligibility"]
-        elif is_personalized:
-            intent = "PERSONALIZED"
-            tools_used = ["search_schemes", "check_eligibility", "search_knowledge_base", "search_web_for_government_schemes"]
-        elif "compare" in q or " vs " in q:
+        named_keywords = [
+            "reliance", "reliance foundation", "rf scholarship",
+            "tata scholarship", "tata trusts",
+            "hdfc", "hdfc scholarship",
+            "aditya birla", "lic scholarship", "sitaram jindal", "narotam sekhsaria",
+            "foundation scholarship", "corporate scholarship",
+            "private scholarship", "named education scholarship"
+        ]
+        is_named_scholarship = any(k in q for k in named_keywords)
+        is_comparison = any(k in q for k in ["compare", " vs ", "versus", "difference between"])
+
+        if is_comparison:
             intent = "COMPARISON"
             tools_used = ["compare_schemes", "search_knowledge_base"]
+        elif is_named_scholarship:
+            intent = "NAMED_SCHOLARSHIP_DETAILS"
+            tools_used = ["search_web_for_government_schemes", "search_schemes", "check_eligibility"]
+        elif any(k in q for k in ["andhra pradesh", "andhra", "ap scheme", "ap schemes", "ap scholarship", "jnanabhumi", "apcfss"]) and "tamil nadu" not in q:
+            intent = "AP_STATE_SCHEMES"
+            tools_used = ["search_web_for_government_schemes", "search_schemes", "check_eligibility"]
         elif "checklist" in q or "document" in q:
             intent = "DOCUMENTS_ONLY"
             tools_used = ["get_required_documents", "create_document_checklist"]
         elif "latest" in q or "update" in q or "2026" in q:
             intent = "LATEST_NEWS"
             tools_used = ["search_web_for_government_schemes"]
+        elif any(k in q for k in ["student", "b.tech", "scholarship", "tamil nadu", "family income", "sc category", "my education"]):
+            intent = "PERSONALIZED"
+            tools_used = ["search_schemes", "check_eligibility", "search_knowledge_base", "search_web_for_government_schemes"]
         else:
             intent = "INFORMATIONAL"
             tools_used = ["search_knowledge_base", "get_scheme_details"]

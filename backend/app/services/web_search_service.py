@@ -31,6 +31,35 @@ OFFICIAL_GOVT_DOMAINS_SUFFIXES = (
     "pmvishwakarma.gov.in"
 )
 
+OFFICIAL_FOUNDATION_DOMAINS_SUFFIXES = (
+    "scholarships.reliancefoundation.org",
+    "reliancefoundation.org",
+    "tatatrusts.org",
+    "hdfcbank.com",
+    "adityabirlacapital.com"
+)
+
+def is_official_foundation_domain(url: str) -> bool:
+    """Strictly checks whether a given URL belongs to an official foundation/corporate domain."""
+    if not url or not isinstance(url, str):
+        return False
+    url = url.strip()
+    if not url.startswith("http://") and not url.startswith("https://"):
+        url = "https://" + url
+    try:
+        parsed = urllib.parse.urlparse(url)
+        netloc = parsed.netloc.lower()
+        if ":" in netloc:
+            netloc = netloc.split(":")[0]
+        if netloc.startswith("www."):
+            netloc = netloc[4:]
+        for f_domain in OFFICIAL_FOUNDATION_DOMAINS_SUFFIXES:
+            if netloc == f_domain or netloc.endswith("." + f_domain):
+                return True
+        return False
+    except Exception:
+        return False
+
 def is_official_government_domain(url: str) -> bool:
     """Strictly checks whether a given URL belongs to an official government domain."""
     if not url or not isinstance(url, str):
@@ -112,13 +141,21 @@ class WebSearchService:
                                 link = urllib.parse.unquote(match.group(1))
 
                         if title and (snippet or link):
-                            is_official = is_official_government_domain(link)
+                            is_official_govt = is_official_government_domain(link)
+                            is_official_found = is_official_foundation_domain(link)
+                            if is_official_found:
+                                source_label = "Official Foundation Source"
+                            elif is_official_govt:
+                                source_label = "Official Government Source"
+                            else:
+                                source_label = "Third-Party Reference"
+
                             results.append({
                                 "title": title,
                                 "snippet": snippet,
                                 "link": link,
-                                "is_official": is_official,
-                                "source": "Official Government Portal" if is_official else "Third-Party Reference"
+                                "is_official": is_official_govt or is_official_found,
+                                "source": source_label
                             })
                             if len(results) >= max_results * 2:
                                 break

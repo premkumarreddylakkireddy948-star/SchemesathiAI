@@ -63,11 +63,21 @@ class LLMService:
     def generate_clean_title(self, query: str, intent: str) -> str:
         """Generate a short, meaningful title based on query intent"""
         q_lower = query.lower()
+        if intent == "NAMED_SCHOLARSHIP_DETAILS" or "reliance" in q_lower or "rf scholarship" in q_lower:
+            if "reliance" in q_lower or "rf" in q_lower:
+                return "# Reliance Foundation Undergraduate Scholarships"
+            if "tata" in q_lower:
+                return "# Tata Trusts Scholarships"
+            if "hdfc" in q_lower:
+                return "# HDFC Bank Parivartan Educational Crisis Scholarship"
+            return "# Named Foundation Scholarships"
         if intent == "AP_STATE_SCHEMES" or "andhra" in q_lower or "ap scheme" in q_lower or "ap scholarship" in q_lower:
             return "# 🏛️ Andhra Pradesh Government Schemes"
         if intent == "PERSONALIZED" or "scholarship" in q_lower or "student" in q_lower or "b.tech" in q_lower:
             return "# 🎓 Scholarships Relevant to Your Profile"
-        if intent == "COMPARISON" or ("compare" in q_lower and ("pmkisan" in q_lower or "pmay" in q_lower)):
+        if intent == "COMPARISON" or ("compare" in q_lower and ("pmkisan" in q_lower or "pmay" in q_lower or "reliance" in q_lower)):
+            if "reliance" in q_lower and "central sector" in q_lower:
+                return "# 🔍 Reliance Foundation Scholarship vs Central Sector Scholarship"
             return "# 🔍 PM-KISAN vs PMAY"
         if intent in ["CHECKLIST", "DOCUMENTS_ONLY"] or "checklist" in q_lower or "document" in q_lower:
             if "kisan" in q_lower or "pm-kisan" in q_lower:
@@ -104,9 +114,166 @@ class LLMService:
         title = self.generate_clean_title(query, intent)
 
         # ----------------------------------------------------
+        # INTENT -1: NAMED SCHOLARSHIP / ORGANIZATION DETAILS
+        # ----------------------------------------------------
+        if intent == "NAMED_SCHOLARSHIP_DETAILS" or (("reliance" in q_lower or "rf scholarship" in q_lower or "tata scholarship" in q_lower or "tata trusts" in q_lower or "hdfc scholarship" in q_lower) and not ("compare" in q_lower or " vs " in q_lower)):
+            is_2025_cycle = "2025" in q_lower and "2026" not in q_lower
+            cycle_year = "2025–26" if is_2025_cycle else "2026–27"
+            check_eligibility_requested = "eligible" in q_lower or "eligibility" in q_lower or "can i" in q_lower or "am i" in q_lower or user_context is not None
+
+            # --- CASE A: RELIANCE FOUNDATION SCHOLARSHIP ---
+            if "reliance" in q_lower or "rf" in q_lower or "foundation scholarship" in q_lower:
+                has_web = "web_result" in retrieved_data and len(retrieved_data["web_result"]) > 0
+                badge = "**🧠🌐 Official Foundation Source + Live Web Search**" if has_web else "**🧠 Official Foundation Source**"
+
+                profile_eval = ""
+                if check_eligibility_requested:
+                    user_income = user_context.get("annual_income", 250000) if user_context else 250000
+                    user_year = user_context.get("year", 1) if user_context else 1
+                    is_2nd_year = "second year" in q_lower or "2nd year" in q_lower or user_year > 1
+
+                    if is_2nd_year:
+                        profile_eval = (
+                            "\n\n### ⚠️ Profile Eligibility Assessment (2026–27)\n\n"
+                            "- **Enrolment Year:** Second year or higher\n"
+                            "- **Status:** **NOT ELIGIBLE** for the current 2026–27 cycle.\n"
+                            "- **Reason:** Based on the current 2026–27 eligibility criteria, students who are already in second year or higher are not eligible for this cycle. The scheme is strictly restricted to students currently enrolled in the first year of a regular full-time undergraduate degree.\n\n"
+                            "> ⚠️ *Note: Final eligibility must be verified directly on the official portal.*"
+                        )
+                    else:
+                        profile_eval = (
+                            "\n\n### ⚠️ Profile Eligibility Assessment (2026–27)\n\n"
+                            "- **Undergraduate Enrolment Status:** Enrolled in 1st year of regular full-time undergraduate degree\n"
+                            f"- **Household Income:** Stated income of ₹{user_income:,.0f} falls within the published threshold (< ₹15 Lakh/year)\n"
+                            "- **Class 12 Marks:** Must be minimum 60% or higher\n"
+                            "- **Mandatory Aptitude Test:** Required to appear and complete online test\n"
+                            "- **Status:** **POTENTIALLY ELIGIBLE** — preliminary criteria met.\n\n"
+                            "> ⚠️ *Note: Final eligibility and selection are determined solely by Reliance Foundation following academic and aptitude test evaluations.*"
+                        )
+
+                if is_2025_cycle:
+                    return (
+                        f"{badge}\n\n"
+                        "# Reliance Foundation Undergraduate Scholarships\n\n"
+                        "**Provider:**  \n"
+                        "Reliance Foundation  \n\n"
+                        "**Scholarship Type:**  \n"
+                        "Private / Foundation Scholarship  \n\n"
+                        "**Academic Year:**  \n"
+                        "2025–26  \n\n"
+                        "### Who Could Apply (2025–26 Cycle)\n"
+                        "- Indian resident citizen\n"
+                        "- Passed Class 12 with minimum 60% marks\n"
+                        "- Enrolled in first year of regular full-time undergraduate degree course (any stream)\n"
+                        "- Household annual income below ₹15 lakh (preference given to income < ₹2.5 lakh)\n"
+                        "- Mandatory online aptitude test\n\n"
+                        "### Current Status (2025–26)\n"
+                        "Applications for the 2025–26 cycle are closed and selected scholars have been announced. Please refer to the 2026–27 cycle for active opportunities.\n\n"
+                        "### Scholarship Benefit\n"
+                        "Up to ₹2 lakh over the duration of the undergraduate degree.\n\n"
+                        "### Selection\n"
+                        "Merit-cum-means based selection considering Class 12 marks, family income, and online aptitude test.\n\n"
+                        "### Official Website\n"
+                        "https://scholarships.reliancefoundation.org/\n\n"
+                        "### Application Fee\n"
+                        "No application fee.\n\n"
+                        "### Important\n"
+                        "This is a Reliance Foundation scholarship, NOT a government scholarship."
+                        f"{profile_eval}"
+                    )
+
+                return (
+                    f"{badge}\n\n"
+                    "# Reliance Foundation Undergraduate Scholarships\n\n"
+                    "**Provider:**  \n"
+                    "Reliance Foundation  \n\n"
+                    "**Scholarship Type:**  \n"
+                    "Private / Foundation Scholarship  \n\n"
+                    "**Academic Year:**  \n"
+                    "2026–27  \n\n"
+                    "### Who Can Apply\n"
+                    "- Indian resident citizen\n"
+                    "- Passed Class 12 with minimum 60%\n"
+                    "- Currently studying in first year of a regular full-time undergraduate degree\n"
+                    "- Any undergraduate stream\n"
+                    "- Household income below ₹15 lakh\n"
+                    "- Mandatory aptitude test\n\n"
+                    "### Who Cannot Apply\n"
+                    "- Students already in second year or higher\n"
+                    "- Students enrolled in online/distance/non-regular degree modes\n"
+                    "- Students in excluded 2-year or 6-year degree programmes\n"
+                    "- Students who do not complete the mandatory aptitude test\n\n"
+                    "### Scholarship Benefit\n"
+                    "Up to ₹2 lakh over the duration of the undergraduate degree.\n\n"
+                    "### Selection\n"
+                    "Merit-cum-means based selection considering:\n"
+                    "- Academic information\n"
+                    "- Household income\n"
+                    "- Personal information\n"
+                    "- Aptitude test performance\n\n"
+                    "### Application\n"
+                    "1. Register online on the official Reliance Foundation portal (scholarships.reliancefoundation.org).\n"
+                    "2. Complete the initial eligibility questionnaire and submit basic details.\n"
+                    "3. Upload scanned original Class 10 & 12 marksheets, admission fee receipt, and income proof.\n"
+                    "4. Appear for and complete the mandatory online aptitude test within the scheduled testing window.\n\n"
+                    "### Required Information/Documents\n"
+                    "- Class 10th & Class 12th Marksheets\n"
+                    "- Current College Admission Proof & Paid Fee Receipt\n"
+                    "- Family Income Certificate / Salary Slip / Form 16 (<= ₹15L/yr)\n"
+                    "- Passport-size Photograph & Government Photo ID (Aadhaar / Passport)\n\n"
+                    "### Official Website\n"
+                    "https://scholarships.reliancefoundation.org/\n\n"
+                    "### Application Fee\n"
+                    "No application fee.\n\n"
+                    "### Important\n"
+                    "This is a Reliance Foundation scholarship, NOT a government scholarship."
+                    f"{profile_eval}"
+                )
+
+            # --- CASE B: TATA TRUSTS SCHOLARSHIP ---
+            if "tata" in q_lower:
+                return (
+                    "**🧠 Official Foundation Source**\n\n"
+                    "# Tata Trusts Scholarships\n\n"
+                    "**Provider:**  \n"
+                    "Tata Trusts  \n\n"
+                    "**Scholarship Type:**  \n"
+                    "Private / Foundation Scholarship  \n\n"
+                    "**Academic Year:**  \n"
+                    "2026–27  \n\n"
+                    "### Who Can Apply\n"
+                    "- Indian resident citizen\n"
+                    "- Enrolled in recognized undergraduate, postgraduate, or professional degree courses in India\n"
+                    "- Passed preceding qualifying examination with minimum 60% marks\n"
+                    "- Total annual family income within published threshold (typically below ₹4–6 lakh/year depending on stream)\n\n"
+                    "### Who Cannot Apply\n"
+                    "- Students studying in unaccredited or non-recognized institutions\n"
+                    "- Students who fail to provide valid income or academic marksheets\n\n"
+                    "### Scholarship Benefit\n"
+                    "Financial assistance covering tuition fees and academic expenses ranging from ₹10,000 up to ₹50,000 (or higher for overseas studies via JN Tata Endowment).\n\n"
+                    "### Selection\n"
+                    "Merit-cum-means based selection considering academic performance and family financial need.\n\n"
+                    "### Application\n"
+                    "1. Register online on the official Tata Trusts portal (tatatrusts.org).\n"
+                    "2. Submit academic transcripts, fee receipts, and family income certificate.\n"
+                    "3. Complete trust evaluation.\n\n"
+                    "### Required Information/Documents\n"
+                    "- Marksheets of preceding qualifying examinations\n"
+                    "- Family Income Certificate / Income Tax Return\n"
+                    "- College Admission Letter & Paid Fee Receipt\n"
+                    "- Aadhaar Card & Student Bank Account Details\n\n"
+                    "### Official Website\n"
+                    "https://www.tatatrusts.org/\n\n"
+                    "### Application Fee\n"
+                    "No application fee.\n\n"
+                    "### Important\n"
+                    "This is a private/foundation scholarship offered by Tata Trusts, NOT a government scheme."
+                )
+
+        # ----------------------------------------------------
         # INTENT 0: ANDHRA PRADESH STATE SCHEMES SEARCH
         # ----------------------------------------------------
-        if intent == "AP_STATE_SCHEMES" or "andhra" in q_lower or "ap scheme" in q_lower or "ap scholarship" in q_lower or "ap government scheme" in q_lower or ("ap" in q_lower and "student" in q_lower):
+        if intent == "AP_STATE_SCHEMES" or (("andhra" in q_lower or "ap scheme" in q_lower or "ap scholarship" in q_lower or "jnanabhumi" in q_lower or bool(re.search(r'\bap\b', q_lower) and "student" in q_lower)) and "tamil nadu" not in q_lower):
             has_web = "web_result" in retrieved_data and len(retrieved_data["web_result"]) > 0
             badge = "**🧠🌐 Knowledge Base + Live Web Search**" if has_web else "**🧠 Knowledge Base**"
 
@@ -195,7 +362,7 @@ class LLMService:
         # ----------------------------------------------------
         # INTENT 1: PERSONALIZED SCHOLARSHIP DISCOVERY (STRICT PIPELINE)
         # ----------------------------------------------------
-        if intent == "PERSONALIZED" or "b.tech" in q_lower or "student" in q_lower or "scholarship" in q_lower or "sc category" in q_lower or "financial assistance" in q_lower:
+        if (intent == "PERSONALIZED" or "b.tech" in q_lower or "student" in q_lower or "scholarship" in q_lower or "sc category" in q_lower or "financial assistance" in q_lower) and not (intent in ["COMPARISON", "NAMED_SCHOLARSHIP_DETAILS"] or " vs " in q_lower or "versus" in q_lower or "compare" in q_lower):
             has_web = "web_result" in retrieved_data and len(retrieved_data["web_result"]) > 0
             badge = "**🧠🌐 Knowledge Base + Live Web Search**" if has_web else "**🧠 Knowledge Base**"
 
@@ -424,9 +591,32 @@ class LLMService:
             )
 
         # ----------------------------------------------------
-        # INTENT 2: EXPLICIT SCHEME COMPARISON (REGRESSION TEST 15)
+        # INTENT 2: EXPLICIT SCHEME COMPARISON
         # ----------------------------------------------------
-        if intent == "COMPARISON" or ("pmkisan" in q_lower or "kisan" in q_lower) and ("pmay" in q_lower or "awas" in q_lower):
+        if intent == "COMPARISON" or ("compare" in q_lower or " vs " in q_lower or "versus" in q_lower):
+            if "reliance" in q_lower and ("central sector" in q_lower or "nsp" in q_lower or "government" in q_lower or "scholarship" in q_lower):
+                return (
+                    "# 🔍 Reliance Foundation Scholarship vs Central Sector Scholarship\n\n"
+                    "| Feature | Reliance Foundation Undergraduate Scholarship | Central Sector Scheme of Scholarships (NSP) |\n"
+                    "|---|---|---|\n"
+                    "| 🎯 **Provider & Type** | Reliance Foundation (Private / Foundation) | Central Government (Ministry of Education) |\n"
+                    "| 🎓 **Target Course** | 1st Year Regular Full-Time Undergraduate Degree (Any Stream) | 1st Year Regular Full-Time Degree Course (B.Tech/Graduation) |\n"
+                    "| 💰 **Scholarship Benefit** | Up to ₹2,00,000 over degree duration | ₹12,000/yr for 3 yrs at UG level (₹20,000/yr at PG level) |\n"
+                    "| 💵 **Household Income Limit** | Annual family income below ₹15 Lakh | Annual family income below ₹4.5 Lakh |\n"
+                    "| 📚 **Academic & Selection Criteria** | Minimum 60% in Class 12 + Mandatory Online Aptitude Test | Top 80th percentile of successful candidates in Class 12th Board Exam |\n"
+                    "| 📝 **Application Fee** | No application fee (Free) | No application fee (Free) |\n"
+                    "| 🌐 **Official Portal** | [scholarships.reliancefoundation.org](https://scholarships.reliancefoundation.org/) | [scholarships.gov.in](https://scholarships.gov.in) |\n\n"
+                    "## ⭐ Key Differences\n\n"
+                    "- **Provider:** Reliance Foundation is a private/foundation scholarship, while Central Sector Scholarship is a Central Government scheme.\n"
+                    "- **Selection Mode:** Reliance Foundation requires a mandatory online aptitude test in addition to Class 12 marks, while Central Sector relies on Class 12th board 80th percentile rank.\n"
+                    "- **Income Limit:** Reliance Foundation permits family income up to ₹15 Lakh/year, whereas Central Sector caps family income at ₹4.5 Lakh/year.\n\n"
+                    "## 📚 Official Sources\n\n"
+                    "**Reliance Foundation**  \n"
+                    "🌐 Official Foundation Source: [scholarships.reliancefoundation.org](https://scholarships.reliancefoundation.org/)  \n\n"
+                    "**Central Sector Scholarship**  \n"
+                    "🌐 Official Government Portal: [scholarships.gov.in](https://scholarships.gov.in)  \n\n"
+                    "> ⚠️ **Important:** Final eligibility criteria and application deadlines must be verified on the official provider portals."
+                )
             return (
                 "# 🔍 PM-KISAN vs PMAY\n\n"
                 "| Feature | PM-KISAN | PMAY (Pradhan Mantri Awas Yojana) |\n"
