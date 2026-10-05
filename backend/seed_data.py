@@ -121,6 +121,76 @@ SEED_SCHEMES = [
         "required_documents": "- JEE Advanced / JEE Main Rank Card & Allotment Letter\n- Family Income Certificate / Form 16\n- Class 10 & 12 Mark Sheets\n- Aadhaar Card & Student Bank Passbook",
         "application_process": "1. Register online on Bharti Airtel Foundation Scholarship Portal (bhartifoundation.org).\n2. Upload documents and pass online panel interview.\n3. Scholarship disbursed directly to college and student DBTL account.",
         "official_portal_url": "https://bhartifoundation.org"
+    },
+    {
+        "scheme_code": "GOI-ENRG-SURYAGHAR-2024",
+        "name": "PM Surya Ghar: Muft Bijli Yojana",
+        "ministry_or_department": "Ministry of New and Renewable Energy (MNRE), Govt of India",
+        "category": "Clean Energy & Rooftop Solar Subsidies",
+        "state": "All India",
+        "summary": "Free solar electricity up to 300 units per month for households across India with direct financial subsidy up to ₹78,000 for rooftop solar installations.",
+        "eligibility_criteria": "- Resident household in India with a suitable roof for solar panel installation.\n- Electricity connection in applicant's name.\n- Subsidy Tiers: ₹30,000 for 1 kW system; ₹60,000 for 2 kW system; ₹78,000 max subsidy for 3 kW+ system.",
+        "benefits": "Free electricity up to 300 units/month + Central financial assistance subsidy up to ₹78,000 credited directly into bank account.",
+        "income_limit": None,
+        "required_documents": "- Recent Electricity Bill\n- Aadhaar Card\n- Bank Account Passbook (Aadhaar seeded)\n- Roof Ownership / Residence Proof",
+        "application_process": "1. Apply online at pmsuryaghar.gov.in.\n2. Feasibility approval by DISCOM.\n3. Installation by registered vendor & net meter inspection.",
+        "official_portal_url": "https://pmsuryaghar.gov.in"
+    },
+    {
+        "scheme_code": "GOI-MSME-VISHWAKARMA-2024",
+        "name": "PM Vishwakarma Scheme",
+        "ministry_or_department": "Ministry of Micro, Small & Medium Enterprises (MSME), Govt of India",
+        "category": "Artisans & Traditional Craftsmen",
+        "state": "All India",
+        "summary": "Comprehensive support for traditional artisans and craftspeople across 18 trades, including collateral-free loans up to ₹3 Lakh at 5% interest, ₹15,000 toolkit incentive, and stipend during skill training.",
+        "eligibility_criteria": "- Artisan/Craftsperson working with hands and tools in one of 18 traditional trades (e.g. Carpenter, Blacksmith, Goldsmith, Potter, Weaver, Tailor, Cobbler, Mason, Sculptor, Barber, Washerman, etc.).\n- Minimum age 18 years.",
+        "benefits": "Collateral-free enterprise loan up to ₹3 Lakh (₹1 Lakh 1st tranche + ₹2 Lakh 2nd tranche) at 5% interest + ₹15,000 e-voucher for toolkit + ₹500/day skill training stipend.",
+        "income_limit": None,
+        "required_documents": "- Aadhaar Card\n- Active Mobile Number linked with Aadhaar\n- Bank Passbook Copy\n- Skill / Trade Proof",
+        "application_process": "1. Register at CSC or pmvishwakarma.gov.in.\n2. Three-tier verification (Gram Panchayat/ULB, District Implementation Committee, Screening Committee).\n3. PM Vishwakarma Digital ID Card issued.",
+        "official_portal_url": "https://pmvishwakarma.gov.in"
+    },
+    {
+        "scheme_code": "GOI-FIN-SUKANYA-2024",
+        "name": "Sukanya Samriddhi Yojana (SSY)",
+        "ministry_or_department": "Ministry of Finance / Department of Posts, Govt of India",
+        "category": "Girl Child & Small Savings",
+        "state": "All India",
+        "summary": "High-interest government savings scheme for girl children offering 8.2% p.a. interest rate with triple tax exemptions (EEE status under Section 80C).",
+        "eligibility_criteria": "- Account opened by parent/legal guardian for a girl child under 10 years of age.\n- Maximum 2 accounts per family (except in case of twins/triplets).\n- Deposit Limit: Minimum ₹250 to Maximum ₹1.5 Lakh per financial year.",
+        "benefits": "8.2% p.a. compounding interest + Tax deduction under Sec 80C + 50% partial withdrawal for higher education after age 18 + Full maturity at 21 years.",
+        "income_limit": None,
+        "required_documents": "- Birth Certificate of Girl Child\n- Identity & Address Proof of Parent/Guardian (Aadhaar/PAN Card)\n- Passport Size Photographs",
+        "application_process": "1. Visit any Post Office or authorized commercial bank branch.\n2. Submit account opening form with initial deposit (min ₹250).\n3. Passbook issued for tracking contributions.",
+        "official_portal_url": "https://www.indiapost.gov.in"
+    },
+    {
+        "scheme_code": "GOI-FIN-MUDRA-2024",
+        "name": "Pradhan Mantri Mudra Yojana (PMMY)",
+        "ministry_or_department": "Department of Financial Services, Ministry of Finance, Govt of India",
+        "category": "Micro-Business & MSME Credit",
+        "state": "All India",
+        "summary": "Collateral-free business loans up to ₹10 Lakh for non-corporate, non-farm small/micro enterprises across three categories: Shishu (up to ₹50,000), Kishore (₹50,000 to ₹5 Lakh), and Tarun (₹5 Lakh to ₹10 Lakh).",
+        "eligibility_criteria": "- Small business owners, shopkeepers, artisans, fruit/vegetable vendors, small manufacturers, service providers, and startup entrepreneurs.",
+        "benefits": "Collateral-free loans up to ₹10 Lakh + Mudra Debit Card for working capital drawdown + Low interest rates.",
+        "income_limit": None,
+        "required_documents": "- Identity & Address Proof (Aadhaar/Voter ID/PAN)\n- Business Registration / Udyam MSME Certificate\n- 6 Months Bank Statement\n- Project Report / Quotations",
+        "application_process": "1. Apply online via JanSamarth portal (jansamarth.in) or any commercial/RRB/cooperative bank.\n2. Bank credit appraisal and sanction.",
+        "official_portal_url": "https://www.mudra.org.in"
+    },
+    {
+        "scheme_code": "OD-WCD-SUBHADRA-2024",
+        "name": "Subhadra Yojana (Odisha)",
+        "ministry_or_department": "Women and Child Development Department, Govt of Odisha",
+        "category": "Women Empowerment & Financial Support",
+        "state": "Odisha",
+        "summary": "Financial assistance of ₹50,000 over 5 years (₹10,000 per year paid in two installments of ₹5,000 on Raksha Bandhan and International Women's Day) transferred directly to eligible women in Odisha.",
+        "eligibility_criteria": "- Female resident of Odisha aged between 21 and 60 years from economically weaker households.\n- Excludes government employees, taxpayers, and women receiving >= ₹1,500/month in other cash schemes.",
+        "benefits": "Direct bank transfer of ₹50,000 over 5 years (₹10,000/year) + Subhadra ATM Debit Card + Digital transaction incentives.",
+        "income_limit": 250000.0,
+        "required_documents": "- Aadhaar Card (single name, eKYC completed)\n- Active Aadhaar-seeded Bank Account (DBTL enabled)\n- Subhadra Application Form / Online Registration",
+        "application_process": "1. Apply online at subhadra.odisha.gov.in or via Mo Seba Kendra / Anganwadi Centers.\n2. Aadhaar eKYC verification and direct benefit transfer.",
+        "official_portal_url": "https://subhadra.odisha.gov.in"
     }
 ]
 

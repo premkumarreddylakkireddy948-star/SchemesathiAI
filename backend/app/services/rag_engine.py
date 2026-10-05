@@ -199,27 +199,52 @@ class RAGEngine:
         user_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Full RAG pipeline: Query -> Embedding -> Qdrant Search -> Top-K Chunks -> LLM -> Grounded Response + Sources
+        Pure Online Web Search Retrieval Pipeline:
+        Performs live online retrieval from official web sources (.gov.in, .nic.in, myschemes.gov.in)
+        and synthesizes answers strictly based on real-time live online search results.
         """
-        chunks = self.retrieve_top_chunks(query, top_k=top_k, category=category)
+        from app.services.web_search_service import web_search_service
         
-        # System prompt for agentic RAG navigator
+        # 1. Perform Live Online Web Retrieval
+        web_results = web_search_service.search_official_schemes(query, max_results=5)
+        
+        chunks = []
+        if web_results:
+            for idx, w_res in enumerate(web_results):
+                chunks.append({
+                    "payload": {
+                        "scheme_name": w_res["title"],
+                        "document_name": "Official Live Web Portal (.gov.in)",
+                        "source_url": w_res["link"],
+                        "page_number": 1,
+                        "chunk_index": idx + 1,
+                        "category": category or "Live Government Portal",
+                        "update_date": "Live Online Search",
+                        "text": f"LIVE ONLINE RETRIEVED CONTENT: {w_res['snippet']} (Official URL: {w_res['link']})"
+                    }
+                })
+        else:
+            # Fallback to local vector search if online connection is unavailable
+            chunks = self.retrieve_top_chunks(query, top_k=top_k, category=category)
+
+        # System prompt for live online retrieval agent
         system_prompt = (
             "You are SchemeSathi AI, an intelligent agentic guide for Indian government schemes, "
             "scholarships, and welfare programs.\n"
             "SYSTEM RULES:\n"
-            "1. Ground your response in the provided document chunks.\n"
-            "2. CRITICAL RULE: If the user is asking about a specific scheme by name or keyword (e.g. PM-KISAN, Ayushman Bharat, PMAY, etc.), focus your response PRIMARILY on that requested scheme. Do NOT include unrelated schemes unless specifically asked to compare.\n"
-            "3. NEVER state 'You are eligible.' Instead say 'Based on the information provided, this scheme appears potentially relevant because...'\n"
+            "1. Ground your response STRICTLY in the provided live online web retrieval search results.\n"
+            "2. CRITICAL RULE: Focus your response PRIMARILY on the specific scheme or question requested by the user.\n"
+            "3. NEVER state 'You are eligible.' Instead say 'Based on live official online portal guidelines, this scheme appears potentially relevant because...'\n"
             "4. Clearly state that final eligibility must be verified with the official government authority.\n"
-            "5. Be clear, accurate, encouraging, and structured using markdown headings and bullet points."
+            "5. Always present the live official application portal link retrieved from the web search.\n"
+            "6. Be clear, accurate, encouraging, and structured using markdown headings and bullet points."
         )
 
         user_msg = f"User Profile Context: {user_context}\nUser Request: {query}" if user_context else query
 
         grounded_answer = llm_service.generate_response(system_prompt, user_msg, chunks)
 
-        # Build clean source citations
+        # Build clean live online source citations
         citations = []
         seen_keys = set()
         for c in chunks:
@@ -229,12 +254,12 @@ class RAGEngine:
                 seen_keys.add(key)
                 citations.append({
                     "scheme_name": p.get("scheme_name", "Government Scheme"),
-                    "document_name": p.get("document_name", "Official Guideline"),
+                    "document_name": p.get("document_name", "Official Live Web Portal"),
                     "source_url": p.get("source_url", "https://myschemes.gov.in"),
                     "page_number": p.get("page_number", 1),
                     "chunk_index": p.get("chunk_index", 0),
-                    "category": p.get("category", "General"),
-                    "update_date": p.get("update_date", ""),
+                    "category": p.get("category", "Live Government Portal"),
+                    "update_date": p.get("update_date", "Live Online"),
                     "snippet": p.get("text", "")[:250] + "..."
                 })
 
@@ -246,3 +271,4 @@ class RAGEngine:
         }
 
 rag_engine = RAGEngine()
+
