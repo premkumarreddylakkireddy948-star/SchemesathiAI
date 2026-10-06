@@ -119,7 +119,7 @@ class LLMService:
         if intent == "NAMED_SCHOLARSHIP_DETAILS" or (("reliance" in q_lower or "rf scholarship" in q_lower or "tata scholarship" in q_lower or "tata trusts" in q_lower or "hdfc scholarship" in q_lower) and not ("compare" in q_lower or " vs " in q_lower)):
             is_2025_cycle = "2025" in q_lower and "2026" not in q_lower
             cycle_year = "2025–26" if is_2025_cycle else "2026–27"
-            check_eligibility_requested = "eligible" in q_lower or "eligibility" in q_lower or "can i" in q_lower or "am i" in q_lower or user_context is not None
+            check_eligibility_requested = "eligible" in q_lower or "eligibility" in q_lower or "can i" in q_lower or "am i" in q_lower or "suitable" in q_lower or user_context is not None
 
             # --- CASE A: RELIANCE FOUNDATION SCHOLARSHIP ---
             if "reliance" in q_lower or "rf" in q_lower or "foundation scholarship" in q_lower:
@@ -128,27 +128,55 @@ class LLMService:
 
                 profile_eval = ""
                 if check_eligibility_requested:
-                    user_income = user_context.get("annual_income", 250000) if user_context else 250000
-                    user_year = user_context.get("year", 1) if user_context else 1
-                    is_2nd_year = "second year" in q_lower or "2nd year" in q_lower or user_year > 1
+                    user_income = user_context.get("annual_income") if user_context else None
+                    if user_income is None and user_context and "income" in user_context:
+                        user_income = user_context.get("income")
+                    
+                    user_year = None
+                    if user_context and ("year" in user_context or "academic_year" in user_context or "course_year" in user_context):
+                        user_year = user_context.get("year") or user_context.get("academic_year") or user_context.get("course_year")
+                    
+                    if "2nd year" in q_lower or "second year" in q_lower or "2nd-year" in q_lower:
+                        user_year = 2
+                    elif "1st year" in q_lower or "first year" in q_lower or "1st-year" in q_lower:
+                        user_year = 1
+                    elif "3rd year" in q_lower or "third year" in q_lower or "4th year" in q_lower or "fourth year" in q_lower:
+                        user_year = 3
 
-                    if is_2nd_year:
+                    if isinstance(user_year, str):
+                        if "2" in user_year or "second" in user_year.lower():
+                            user_year = 2
+                        elif "1" in user_year or "first" in user_year.lower():
+                            user_year = 1
+                        elif "3" in user_year or "third" in user_year.lower() or "4" in user_year or "fourth" in user_year.lower():
+                            user_year = 3
+
+                    if user_year is not None and int(user_year) > 1:
                         profile_eval = (
                             "\n\n### ⚠️ Profile Eligibility Assessment (2026–27)\n\n"
-                            "- **Enrolment Year:** Second year or higher\n"
+                            f"- **Enrolment Year:** {user_year}nd/rd/th year (Higher than 1st year)\n"
                             "- **Status:** **NOT ELIGIBLE** for the current 2026–27 cycle.\n"
                             "- **Reason:** Based on the current 2026–27 eligibility criteria, students who are already in second year or higher are not eligible for this cycle. The scheme is strictly restricted to students currently enrolled in the first year of a regular full-time undergraduate degree.\n\n"
                             "> ⚠️ *Note: Final eligibility must be verified directly on the official portal.*"
                         )
-                    else:
+                    elif user_year == 1:
+                        income_disp = f"₹{user_income:,.0f}" if (user_income and isinstance(user_income, (int, float))) else "Within threshold (< ₹15 Lakh/year)"
                         profile_eval = (
                             "\n\n### ⚠️ Profile Eligibility Assessment (2026–27)\n\n"
                             "- **Undergraduate Enrolment Status:** Enrolled in 1st year of regular full-time undergraduate degree\n"
-                            f"- **Household Income:** Stated income of ₹{user_income:,.0f} falls within the published threshold (< ₹15 Lakh/year)\n"
+                            f"- **Household Income:** Stated income of {income_disp} falls within the published threshold (< ₹15 Lakh/year)\n"
                             "- **Class 12 Marks:** Must be minimum 60% or higher\n"
                             "- **Mandatory Aptitude Test:** Required to appear and complete online test\n"
                             "- **Status:** **POTENTIALLY ELIGIBLE** — preliminary criteria met.\n\n"
                             "> ⚠️ *Note: Final eligibility and selection are determined solely by Reliance Foundation following academic and aptitude test evaluations.*"
+                        )
+                    else:
+                        profile_eval = (
+                            "\n\n### ⚠️ Profile Eligibility Assessment (2026–27)\n\n"
+                            "- **Undergraduate Enrolment Status:** **YEAR UNSPECIFIED** (Academic year is not specified in your profile)\n"
+                            "- **Eligibility Rule:** Reliance Foundation Undergraduate Scholarships are strictly restricted to students currently enrolled in the **1st year** of a regular full-time undergraduate degree. Students in 2nd year or higher are not eligible.\n"
+                            "- **Action Required:** Please specify your current academic year (e.g., 1st year vs 2nd year) to determine your eligibility status.\n\n"
+                            "> ⚠️ *Note: Final eligibility must be verified directly on the official portal (scholarships.reliancefoundation.org).* "
                         )
 
                 if is_2025_cycle:

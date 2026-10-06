@@ -2,15 +2,15 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://injured-forge-thinkpad-dual.trycloudflare.com/api/:path*"
+      "destination": "https://inn-refer-tuition-except.trycloudflare.com/api/:path*"
     },
     {
       "source": "/health",
-      "destination": "https://injured-forge-thinkpad-dual.trycloudflare.com/health"
+      "destination": "https://inn-refer-tuition-except.trycloudflare.com/health"
     },
     {
       "source": "/docs",
-      "destination": "https://injured-forge-thinkpad-dual.trycloudflare.com/docs"
+      "destination": "https://inn-refer-tuition-except.trycloudflare.com/docs"
     },
     {
       "source": "/(.*)",
